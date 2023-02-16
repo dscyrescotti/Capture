@@ -24,6 +24,7 @@ class CameraViewModel: ObservableObject {
     func onChangeScenePhase(to scenePhase: ScenePhase) {
         switch scenePhase {
         case .active:
+            guard error == .cameraDenied else { return }
             Task {
                 await checkCameraPermission()
             }
@@ -34,7 +35,6 @@ class CameraViewModel: ObservableObject {
 
     func checkCameraPermission() async {
         let status = dependency.camera.cameraPermissionStatus
-        guard status != cameraPermission else { return }
         await MainActor.run {
             cameraPermission = status
         }

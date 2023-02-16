@@ -81,6 +81,16 @@ extension CameraService {
             try configureCameraInput(from: frontCaptureDevices, at: &frontDeviceIndex)
         }
         try configureCameraOutput()
+        sessionQueue.async { [unowned self] in
+            captureSession.beginConfiguration()
+            if let captureInput {
+                captureSession.addInput(captureInput)
+            }
+            if let captureOutput {
+                captureSession.addOutput(captureOutput)
+            }
+            captureSession.commitConfiguration()
+        }
     }
 
     private func configureCameraInput(from devices: [AVCaptureDevice], at index: inout Int) throws {
@@ -94,18 +104,6 @@ extension CameraService {
             throw CameraError.unknownError
         }
         self.captureInput = newCaptureInput
-        sessionQueue.async { [unowned self] in
-            captureSession.beginConfiguration()
-            if !captureSession.inputs.isEmpty {
-                for input in captureSession.inputs {
-                    captureSession.removeInput(input)
-                }
-            }
-            if let captureInput {
-                captureSession.addInput(captureInput)
-            }
-            captureSession.commitConfiguration()
-        }
     }
 
     private func configureCameraOutput() throws {
@@ -114,16 +112,6 @@ extension CameraService {
             throw CameraError.unknownError
         }
         self.captureOutput = captureOutput
-        sessionQueue.async { [unowned self] in
-            captureSession.beginConfiguration()
-            if !captureSession.outputs.isEmpty {
-                for output in captureSession.outputs {
-                    captureSession.removeOutput(output)
-                }
-            }
-            captureSession.addOutput(captureOutput)
-            captureSession.commitConfiguration()
-        }
     }
 }
 
