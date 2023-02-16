@@ -11,7 +11,7 @@ import SwiftUI
 struct CaptureApp: App {
     var body: some Scene {
         WindowGroup {
-            Text("Camera View is Coming Soon")
+            CameraView(dependency: .live)
         }
     }
 }
