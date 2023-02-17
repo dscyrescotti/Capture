@@ -12,7 +12,6 @@ class CameraService: NSObject {
     // MARK: - Session
     let captureSession: AVCaptureSession
     var sessionQueue: DispatchQueue = DispatchQueue(label: "capture-session")
-    var isRunning: Bool { captureSession.isRunning }
 
     // MARK: - Devices
     private lazy var captureDevices: [AVCaptureDevice] = {
@@ -38,8 +37,6 @@ class CameraService: NSObject {
         captureDevices.filter { $0.position == .back }
     }()
     var captureDevice: AVCaptureDevice?
-    var frontDeviceIndex: Int = -1
-    var rearDeviceIndex: Int = -1
 
     // MARK: - Input
     var captureInput: AVCaptureInput?
@@ -70,15 +67,16 @@ class CameraService: NSObject {
 
 // MARK: - Configuration
 extension CameraService {
-    func configureSession() throws {
+    func configureSession() throws -> CameraMode {
         captureSession.sessionPreset = .photo
         if captureDevices.isEmpty {
             throw CameraError.cameraUnavalible
         }
+        var cameraMode: CameraMode = .none
         if !rearCaptureDevices.isEmpty {
-            try configureCameraInput(from: rearCaptureDevices, at: &rearDeviceIndex)
+            cameraMode = try configureCameraInput(from: rearCaptureDevices, for: .rear)
         } else if !frontCaptureDevices.isEmpty {
-            try configureCameraInput(from: frontCaptureDevices, at: &frontDeviceIndex)
+            cameraMode = try configureCameraInput(from: frontCaptureDevices, for: .front)
         }
         try configureCameraOutput()
         sessionQueue.async { [unowned self] in
@@ -91,19 +89,25 @@ extension CameraService {
             }
             captureSession.commitConfiguration()
         }
+        return cameraMode
     }
 
-    private func configureCameraInput(from devices: [AVCaptureDevice], at index: inout Int) throws {
-        index = (index + 1) / devices.count
+    @discardableResult
+    private func configureCameraInput(from devices: [AVCaptureDevice], for cameraMode: CameraMode, at index: Int = 0) throws -> CameraMode {
+        guard index < devices.count else { throw CameraError.unknownError }
         captureDevice = devices[index]
         guard let captureDevice else {
             throw CameraError.unknownError
+        }
+        if let captureInput {
+            captureSession.removeInput(captureInput)
         }
         let newCaptureInput = try AVCaptureDeviceInput(device: captureDevice)
         guard captureSession.canAddInput(newCaptureInput) else {
             throw CameraError.unknownError
         }
         self.captureInput = newCaptureInput
+        return cameraMode
     }
 
     private func configureCameraOutput() throws {
@@ -112,6 +116,29 @@ extension CameraService {
             throw CameraError.unknownError
         }
         self.captureOutput = captureOutput
+    }
+}
+
+// MARK: - Camera Switching
+extension CameraService {
+    func switchCameraDevice(to index: Int, for captureMode: CameraMode) throws -> CameraMode {
+        var cameraMode: CameraMode
+        switch captureMode {
+        case .front:
+            cameraMode = try configureCameraInput(from: frontCaptureDevices, for: captureMode, at: index)
+        case .rear:
+            cameraMode = try configureCameraInput(from: rearCaptureDevices, for: captureMode, at: index)
+        case .none:
+            cameraMode = .none
+        }
+        sessionQueue.async { [unowned self] in
+            captureSession.beginConfiguration()
+            if let captureInput {
+                captureSession.addInput(captureInput)
+            }
+            captureSession.commitConfiguration()
+        }
+        return cameraMode
     }
 }
 
@@ -124,8 +151,4 @@ extension CameraService {
     func requestCameraPermission() async -> Bool {
         await AVCaptureDevice.requestAccess(for: .video)
     }
-}
-
-extension CameraService: AVCapturePhotoCaptureDelegate {
-
 }

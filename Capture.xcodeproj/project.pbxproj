@@ -8,8 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		EC0A9CE9299E39D20019EF31 /* CameraPreviewLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0A9CE8299E39D20019EF31 /* CameraPreviewLayer.swift */; };
-		EC0A9CEB299E3B580019EF31 /* CameraDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0A9CEA299E3B580019EF31 /* CameraDevice.swift */; };
+		EC0A9CEB299E3B580019EF31 /* CameraMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0A9CEA299E3B580019EF31 /* CameraMode.swift */; };
 		EC0A9CEE299E4DEF0019EF31 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = EC0A9CED299E4DEF0019EF31 /* AsyncAlgorithms */; };
+		ECB3F526299FD32600BEB8A7 /* DeviceType++.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB3F525299FD32600BEB8A7 /* DeviceType++.swift */; };
 		ECC07BEB299DE1BF0043E5B1 /* CaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */; };
 		ECC07BEF299DE1C10043E5B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */; };
 		ECC07BF2299DE1C10043E5B1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC07BF1299DE1C10043E5B1 /* Preview Assets.xcassets */; };
@@ -24,7 +25,8 @@
 
 /* Begin PBXFileReference section */
 		EC0A9CE8299E39D20019EF31 /* CameraPreviewLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewLayer.swift; sourceTree = "<group>"; };
-		EC0A9CEA299E3B580019EF31 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
+		EC0A9CEA299E3B580019EF31 /* CameraMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraMode.swift; sourceTree = "<group>"; };
+		ECB3F525299FD32600BEB8A7 /* DeviceType++.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeviceType++.swift"; sourceTree = "<group>"; };
 		ECC07BE7299DE1BF0043E5B1 /* Capture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Capture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureApp.swift; sourceTree = "<group>"; };
 		ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -104,7 +106,7 @@
 				ECC07C09299E0F650043E5B1 /* CameraDependency.swift */,
 				ECC07C0B299E175B0043E5B1 /* CameraView+Alert.swift */,
 				EC0A9CE8299E39D20019EF31 /* CameraPreviewLayer.swift */,
-				EC0A9CEA299E3B580019EF31 /* CameraDevice.swift */,
+				EC0A9CEA299E3B580019EF31 /* CameraMode.swift */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -129,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				ECC07C0E299E18E70043E5B1 /* View++.swift */,
+				ECB3F525299FD32600BEB8A7 /* DeviceType++.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -215,8 +218,9 @@
 				ECC07C02299DF2630043E5B1 /* CameraView.swift in Sources */,
 				ECC07C08299E07DB0043E5B1 /* CameraService.swift in Sources */,
 				ECC07BEB299DE1BF0043E5B1 /* CaptureApp.swift in Sources */,
-				EC0A9CEB299E3B580019EF31 /* CameraDevice.swift in Sources */,
+				EC0A9CEB299E3B580019EF31 /* CameraMode.swift in Sources */,
 				ECC07C06299E05C30043E5B1 /* CameraViewModel.swift in Sources */,
+				ECB3F526299FD32600BEB8A7 /* DeviceType++.swift in Sources */,
 				ECC07C04299DFAA50043E5B1 /* CameraError.swift in Sources */,
 				ECC07C0A299E0F650043E5B1 /* CameraDependency.swift in Sources */,
 			);
