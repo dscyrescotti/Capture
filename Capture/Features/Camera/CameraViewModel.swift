@@ -13,6 +13,7 @@ class CameraViewModel: ObservableObject {
     let dependency: CameraDependency
 
     @Published var error: CameraError?
+    @Published var hidesCameraPreview: Bool = true
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
 
     var camera: CameraService { dependency.camera }
@@ -24,12 +25,18 @@ class CameraViewModel: ObservableObject {
     func onChangeScenePhase(to scenePhase: ScenePhase) {
         switch scenePhase {
         case .active:
+            Task {
+                try? await Task.sleep(for: .seconds(1))
+                await MainActor.run {
+                    hideCameraPreview(false)
+                }
+            }
             guard error == .cameraDenied else { return }
             Task {
                 await checkCameraPermission()
             }
         default:
-            break
+            hideCameraPreview(true)
         }
     }
 
@@ -58,6 +65,12 @@ class CameraViewModel: ObservableObject {
             }
         @unknown default:
             break
+        }
+    }
+
+    func hideCameraPreview(_ value: Bool) {
+        withAnimation {
+            hidesCameraPreview = value
         }
     }
 }
