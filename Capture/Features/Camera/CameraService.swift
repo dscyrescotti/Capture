@@ -49,8 +49,7 @@ class CameraService: NSObject {
         guard let captureOutput = captureOutput as? AVCapturePhotoOutput, captureOutput.availablePhotoCodecTypes.contains(.hevc) else {
             return false
         }
-        captureOutput.isLivePhotoCaptureEnabled = captureOutput.isLivePhotoCaptureSupported
-        return captureOutput.isLivePhotoCaptureEnabled
+        return captureOutput.isLivePhotoCaptureSupported
     }
 
     // MARK: - Preview
@@ -84,7 +83,8 @@ extension CameraService {
     func capturePhoto(enablesLivePhoto: Bool = true) {
         guard let captureOutput = captureOutput as? AVCapturePhotoOutput else { return }
         let captureSettings: AVCapturePhotoSettings
-        if isAvailableLivePhoto && enablesLivePhoto {
+        captureOutput.isLivePhotoCaptureEnabled = isAvailableLivePhoto && enablesLivePhoto
+        if captureOutput.isLivePhotoCaptureEnabled {
             captureSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
             captureSettings.livePhotoMovieFileURL = FileManager.default.temporaryDirectory
         } else {
@@ -200,6 +200,7 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
         guard let photoImageData else {
             return
         }
+        print("[URL]: \(outputFileURL.absoluteString)")
         Task {
             do {
                 try await photoLibrary.savePhoto(for: photoImageData, withLivePhotoURL: outputFileURL)
