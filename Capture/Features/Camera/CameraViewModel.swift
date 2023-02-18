@@ -71,8 +71,9 @@ extension CameraViewModel {
         }
         Task {
             do {
-                self.cameraMode = try camera.switchCameraDevice(to: index, for: cameraMode)
+                let cameraMode = try camera.switchCameraDevice(to: index, for: cameraMode)
                 await MainActor.run {
+                    self.cameraMode = cameraMode
                     self.disablesActions = false
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
@@ -98,7 +99,7 @@ extension CameraViewModel {
         case .active:
             Task {
                 camera.startSession()
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(0.6))
                 await MainActor.run {
                     hideCameraPreview(false)
                 }

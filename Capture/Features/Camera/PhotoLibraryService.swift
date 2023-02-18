@@ -26,11 +26,11 @@ extension PhotoLibraryService {
         try await photoLibrary.performChanges {
             let createRequest = PHAssetCreationRequest.forAsset()
             createRequest.addResource(with: .photo, data: photoData, options: nil)
-//            if let url {
-//                let options = PHAssetResourceCreationOptions()
-//                options.shouldMoveFile = true
-//                createRequest.addResource(with: .pairedVideo, fileURL: url, options: options)
-//            }
+            if let url {
+                let options = PHAssetResourceCreationOptions()
+                options.shouldMoveFile = true
+                createRequest.addResource(with: .pairedVideo, fileURL: url, options: options)
+            }
         }
     }
 }

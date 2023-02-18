@@ -86,7 +86,7 @@ extension CameraService {
         captureOutput.isLivePhotoCaptureEnabled = isAvailableLivePhoto && enablesLivePhoto
         if captureOutput.isLivePhotoCaptureEnabled {
             captureSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
-            captureSettings.livePhotoMovieFileURL = FileManager.default.temporaryDirectory
+            captureSettings.livePhotoMovieFileURL = FileManager.default.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("mov")
         } else {
             captureSettings = AVCapturePhotoSettings()
         }
@@ -141,7 +141,7 @@ extension CameraService {
 
     private func configureCameraOutput() throws {
         let captureOutput = AVCapturePhotoOutput()
-        captureOutput.isLivePhotoCaptureEnabled = captureOutput.isLivePhotoCaptureSupported
+        captureOutput.isLivePhotoAutoTrimmingEnabled = false
         guard captureSession.canAddOutput(captureOutput) else {
             throw CameraError.unknownError
         }
