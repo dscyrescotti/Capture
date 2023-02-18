@@ -15,16 +15,18 @@ class CameraViewModel: ObservableObject {
     var rearDevices: [String] = []
     var frontDevices: [String] = []
 
-    @Published var error: CameraError?
     @Published var rearDeviceIndex: Int = 0
+    @Published var cameraError: CameraError?
     @Published var frontDeviceIndex: Int = 0
     @Published var disablesActions: Bool = false
     @Published var cameraMode: CameraMode = .none
     @Published var hidesCameraPreview: Bool = true
     @Published var blursCameraPreview: Bool = false
+    @Published var photoLibraryError: PhotoLibraryError?
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
 
     var camera: CameraService { dependency.camera }
+    var photoLibrary: PhotoLibraryService { dependency.photoLibrary }
 
     init(dependency: CameraDependency) {
         self.dependency = dependency
@@ -33,59 +35,8 @@ class CameraViewModel: ObservableObject {
     }
 
     func onChangeScenePhase(to scenePhase: ScenePhase) {
-        switch scenePhase {
-        case .active:
-            Task {
-                camera.startSession()
-                try? await Task.sleep(for: .seconds(1))
-                await MainActor.run {
-                    hideCameraPreview(false)
-                }
-            }
-            guard error == .cameraDenied else { return }
-            Task {
-                await checkCameraPermission()
-            }
-        case .background:
-            camera.stopSession()
-            hideCameraPreview(true)
-        case .inactive:
-            camera.stopSession()
-            hideCameraPreview(true)
-        default:
-            break
-        }
-    }
-
-    func checkCameraPermission() async {
-        let status = dependency.camera.cameraPermissionStatus
-        await MainActor.run {
-            cameraPermission = status
-        }
-        switch status {
-        case .notDetermined:
-            _ = await dependency.camera.requestCameraPermission()
-            await checkCameraPermission()
-        case .restricted, .denied:
-            await MainActor.run {
-                error = .cameraDenied
-            }
-        case .authorized:
-            Task {
-                do {
-                    let cameraMode = try dependency.camera.configureSession()
-                    await MainActor.run {
-                        self.cameraMode = cameraMode
-                    }
-                } catch {
-                    await MainActor.run {
-                        self.error = error as? CameraError ?? .unknownError
-                    }
-                }
-            }
-        @unknown default:
-            break
-        }
+        onChangeScenePhaseForCamera(to: scenePhase)
+        onChangeScenePhaseForPhotoLibrary(to: scenePhase)
     }
 
     func hideCameraPreview(_ value: Bool) {
@@ -93,7 +44,10 @@ class CameraViewModel: ObservableObject {
             hidesCameraPreview = value
         }
     }
+}
 
+// MARK: - Actions
+extension CameraViewModel {
     func switchCameraMode() {
         var index: Int
         var cameraMode: CameraMode
@@ -130,9 +84,96 @@ class CameraViewModel: ObservableObject {
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
                     }
-                    self.error = error as? CameraError ?? .unknownError
+                    self.cameraError = error as? CameraError ?? .unknownError
                 }
             }
+        }
+    }
+}
+
+// MARK: - Scene Phase
+extension CameraViewModel {
+    private func onChangeScenePhaseForCamera(to scenePhase: ScenePhase) {
+        switch scenePhase {
+        case .active:
+            Task {
+                camera.startSession()
+                try? await Task.sleep(for: .seconds(1))
+                await MainActor.run {
+                    hideCameraPreview(false)
+                }
+            }
+            guard cameraError == .cameraDenied else { return }
+            Task {
+                await checkCameraPermission()
+            }
+        case .background:
+            camera.stopSession()
+            hideCameraPreview(true)
+        case .inactive:
+            camera.stopSession()
+            hideCameraPreview(true)
+        default:
+            break
+        }
+    }
+
+    private func onChangeScenePhaseForPhotoLibrary(to scenePhase: ScenePhase) {
+        switch scenePhase {
+        case .active:
+            Task {
+                await checkPhotoLibraryPermission()
+            }
+        default:
+            break
+        }
+    }
+}
+
+// MARK: - Permission
+extension CameraViewModel {
+    func checkCameraPermission() async {
+        let status = camera.cameraPermissionStatus
+        await MainActor.run {
+            cameraPermission = status
+        }
+        switch status {
+        case .notDetermined:
+            _ = await camera.requestCameraPermission()
+            await checkCameraPermission()
+        case .restricted, .denied:
+            await MainActor.run {
+                cameraError = .cameraDenied
+            }
+        case .authorized:
+            Task {
+                do {
+                    let cameraMode = try camera.configureSession()
+                    await MainActor.run {
+                        self.cameraMode = cameraMode
+                    }
+                } catch {
+                    await MainActor.run {
+                        self.cameraError = error as? CameraError ?? .unknownError
+                    }
+                }
+            }
+        @unknown default:
+            break
+        }
+    }
+
+    func checkPhotoLibraryPermission() async {
+        let status = photoLibrary.photoLibraryPermissionStatus
+        switch status {
+        case .notDetermined:
+            _ = await photoLibrary.requestPhotoLibraryPermission()
+            await checkPhotoLibraryPermission()
+        case .restricted, .denied, .limited:
+            await MainActor.run {
+                photoLibraryError = .photoLibraryDenied
+            }
+        default: break
         }
     }
 }

@@ -9,14 +9,23 @@ import Foundation
 
 struct CameraDependency {
     let camera: CameraService
+    let photoLibrary: PhotoLibraryService
 
-    init(camera: CameraService) {
+    init(
+        camera: CameraService,
+        photoLibrary: PhotoLibraryService
+    ) {
         self.camera = camera
+        self.photoLibrary = photoLibrary
     }
 }
 
 extension CameraDependency {
     static var live: CameraDependency {
-        CameraDependency(camera: CameraService())
+        let photoLibrary = PhotoLibraryService()
+        return CameraDependency(
+            camera: CameraService(photoLibrary: photoLibrary),
+            photoLibrary: photoLibrary
+        )
     }
 }

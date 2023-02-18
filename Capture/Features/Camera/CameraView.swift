@@ -23,10 +23,11 @@ struct CameraView: View {
                 cameraBottomActions
             }
             .task {
+                await viewModel.checkPhotoLibraryPermission()
                 await viewModel.checkCameraPermission()
             }
-            .errorAlert($viewModel.error) { error, completion in
-                alertActions(for: error, completion: completion)
+            .errorAlert($viewModel.cameraError) { error, completion in
+                cameraAlertActions(for: error, completion: completion)
             }
             .onChange(of: scenePhase, perform: viewModel.onChangeScenePhase(to:))
             .preferredColorScheme(.dark)
@@ -82,7 +83,7 @@ struct CameraView: View {
                 Spacer()
                 Spacer()
                 Button {
-
+                    viewModel.camera.capturePhoto()
                 } label: {
                     Circle()
                 }
@@ -107,6 +108,9 @@ struct CameraView: View {
         .foregroundColor(.white)
         .padding(.all, 15)
         .background(.black.opacity(0.6), ignoresSafeAreaEdges: .bottom)
+        .errorAlert($viewModel.photoLibraryError) { error, completion in
+            photoLibraryAlertActions(for: error, completion: completion)
+        }
     }
 
     @ViewBuilder

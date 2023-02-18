@@ -9,6 +9,8 @@ import Foundation
 import AVFoundation
 
 class CameraService: NSObject {
+    let photoLibrary: PhotoLibraryService
+
     // MARK: - Session
     let captureSession: AVCaptureSession
     var sessionQueue: DispatchQueue = DispatchQueue(label: "capture-session")
@@ -43,10 +45,22 @@ class CameraService: NSObject {
 
     // MARK: - Output
     var captureOutput: AVCaptureOutput?
+    var isAvailableLivePhoto: Bool {
+        guard let captureOutput = captureOutput as? AVCapturePhotoOutput, captureOutput.availablePhotoCodecTypes.contains(.hevc) else {
+            return false
+        }
+        captureOutput.isLivePhotoCaptureEnabled = captureOutput.isLivePhotoCaptureSupported
+        return captureOutput.isLivePhotoCaptureEnabled
+    }
 
+    // MARK: - Preview
     let cameraPreviewLayer: AVCaptureVideoPreviewLayer
 
-    override init() {
+    // MARK: - Image
+    var photoImageData: Data?
+
+    init(photoLibrary: PhotoLibraryService) {
+        self.photoLibrary = photoLibrary
         self.captureSession = AVCaptureSession()
         self.cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         super.init()
@@ -62,6 +76,21 @@ class CameraService: NSObject {
         sessionQueue.async { [unowned self] in
             captureSession.stopRunning()
         }
+    }
+}
+
+// MARK: - Capture
+extension CameraService {
+    func capturePhoto(enablesLivePhoto: Bool = true) {
+        guard let captureOutput = captureOutput as? AVCapturePhotoOutput else { return }
+        let captureSettings: AVCapturePhotoSettings
+        if isAvailableLivePhoto && enablesLivePhoto {
+            captureSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
+            captureSettings.livePhotoMovieFileURL = FileManager.default.temporaryDirectory
+        } else {
+            captureSettings = AVCapturePhotoSettings()
+        }
+        captureOutput.capturePhoto(with: captureSettings, delegate: self)
     }
 }
 
@@ -112,6 +141,7 @@ extension CameraService {
 
     private func configureCameraOutput() throws {
         let captureOutput = AVCapturePhotoOutput()
+        captureOutput.isLivePhotoCaptureEnabled = captureOutput.isLivePhotoCaptureSupported
         guard captureSession.canAddOutput(captureOutput) else {
             throw CameraError.unknownError
         }
@@ -150,5 +180,32 @@ extension CameraService {
     
     func requestCameraPermission() async -> Bool {
         await AVCaptureDevice.requestAccess(for: .video)
+    }
+}
+
+extension CameraService: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        if let error {
+            print("[ERROR]: \(error.localizedDescription)")
+            return
+        }
+        self.photoImageData = photo.fileDataRepresentation()
+    }
+
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingLivePhotoToMovieFileAt outputFileURL: URL, duration: CMTime, photoDisplayTime: CMTime, resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
+        if let error {
+            print("[Error]: \(error.localizedDescription)")
+            return
+        }
+        guard let photoImageData else {
+            return
+        }
+        Task {
+            do {
+                try await photoLibrary.savePhoto(for: photoImageData, withLivePhotoURL: outputFileURL)
+            } catch {
+                print("[Error]: \(error.localizedDescription)")
+            }
+        }
     }
 }
