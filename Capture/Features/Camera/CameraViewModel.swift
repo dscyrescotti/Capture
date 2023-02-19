@@ -14,6 +14,7 @@ class CameraViewModel: ObservableObject {
     
     var rearDevices: [String] = []
     var frontDevices: [String] = []
+    var scenePhase: ScenePhase = .inactive
 
     @Published var rearDeviceIndex: Int = 0
     @Published var cameraError: CameraError?
@@ -37,6 +38,7 @@ class CameraViewModel: ObservableObject {
     func onChangeScenePhase(to scenePhase: ScenePhase) {
         onChangeScenePhaseForCamera(to: scenePhase)
         onChangeScenePhaseForPhotoLibrary(to: scenePhase)
+        self.scenePhase = scenePhase
     }
 
     func hideCameraPreview(_ value: Bool) {
@@ -108,8 +110,7 @@ extension CameraViewModel {
         switch scenePhase {
         case .active:
             Task {
-                camera.startSession()
-                try? await Task.sleep(for: .seconds(0.6))
+                try? await Task.sleep(for: .seconds(0.4))
                 await MainActor.run {
                     hideCameraPreview(false)
                 }
@@ -122,8 +123,17 @@ extension CameraViewModel {
             camera.stopSession()
             hideCameraPreview(true)
         case .inactive:
-            camera.stopSession()
-            hideCameraPreview(true)
+            if self.scenePhase == .active {
+                camera.stopSession()
+                Task {
+                    try? await Task.sleep(for: .seconds(0.8))
+                    await MainActor.run {
+                        hideCameraPreview(true)
+                    }
+                }
+            } else {
+                camera.startSession()
+            }
         default:
             break
         }

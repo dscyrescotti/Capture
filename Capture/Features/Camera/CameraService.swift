@@ -74,7 +74,7 @@ class CameraService: NSObject {
     }
 
     func stopSession() {
-        guard isConfigured else { return }
+        guard isConfigured && captureSession.isRunning else { return }
         sessionQueue.async { [unowned self] in
             captureSession.stopRunning()
         }
