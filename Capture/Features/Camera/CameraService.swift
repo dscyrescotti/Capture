@@ -52,6 +52,7 @@ class CameraService: NSObject {
         }
         return captureOutput.isLivePhotoCaptureSupported
     }
+    private var captureRect: CGRect = .zero
 
     // MARK: - Preview
     let cameraPreviewLayer: AVCaptureVideoPreviewLayer
@@ -79,9 +80,13 @@ class CameraService: NSObject {
             captureSession.stopRunning()
         }
     }
+
+    func setCaptureRect(with rect: CGRect) {
+        self.captureRect = rect
+    }
 }
 
-// MARK: - Capture
+// MARK: - Actions
 extension CameraService {
     func capturePhoto(enablesLivePhoto: Bool = true) {
         guard let captureOutput = captureOutput as? AVCapturePhotoOutput else { return }
@@ -213,6 +218,7 @@ extension CameraService {
     }
 }
 
+// MARK: - AVCapturePhotoCaptureDelegate
 extension CameraService: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, willBeginCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
         print("[Capture]: will begin processing photo - \(resolvedSettings.uniqueID)")

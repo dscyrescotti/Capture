@@ -19,11 +19,8 @@ struct CameraView: View {
     var body: some View {
         cameraPreview
             .ignoresSafeArea()
-            .overlay(alignment: .bottom) {
-                cameraBottomActions
-            }
-            .overlay(alignment: .top) {
-                cameraTopActions
+            .overlay {
+                cameraOverlay
             }
             .task {
                 await viewModel.checkPhotoLibraryPermission()
@@ -57,6 +54,21 @@ struct CameraView: View {
                 }
         } else {
             Color.black
+        }
+    }
+
+    @ViewBuilder
+    var cameraOverlay: some View {
+        VStack(spacing: 0) {
+            cameraTopActions
+            GeometryReader { proxy in
+                CameraFrameBorder()
+                    .foregroundColor(.white.opacity(0.8))
+                    .onAppear {
+                        viewModel.camera.setCaptureRect(with: proxy.frame(in: .global))
+                    }
+            }
+            cameraBottomActions
         }
     }
 
