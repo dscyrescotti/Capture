@@ -5,8 +5,10 @@
 //  Created by Aye Chan on 2/16/23.
 //
 
+import UIKit
 import Foundation
 import AVFoundation
+import Photos
 
 class CameraService: NSObject {
     let photoLibrary: PhotoLibraryService
@@ -163,6 +165,8 @@ extension CameraService {
     private func configureCameraOutput() throws {
         let captureOutput = AVCapturePhotoOutput()
         captureOutput.isLivePhotoAutoTrimmingEnabled = false
+        let captureSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
+        captureOutput.setPreparedPhotoSettingsArray([captureSettings], completionHandler: nil)
         guard captureSession.canAddOutput(captureOutput) else {
             throw CameraError.unknownError
         }
@@ -218,6 +222,13 @@ extension CameraService {
     }
 }
 
+// MARK: - Photo
+extension CameraService {
+    func handleCapturePhoto(_ photo: AVCapturePhoto) {
+        self.photoImageData = photo.fileDataRepresentation()
+    }
+}
+
 // MARK: - AVCapturePhotoCaptureDelegate
 extension CameraService: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, willBeginCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
@@ -230,7 +241,7 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
             print("[ERROR]: \(error.localizedDescription)")
             return
         }
-        self.photoImageData = photo.fileDataRepresentation()
+        handleCapturePhoto(photo)
     }
 
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingLivePhotoToMovieFileAt outputFileURL: URL, duration: CMTime, photoDisplayTime: CMTime, resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
@@ -247,12 +258,14 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
             do {
                 try await photoLibrary.savePhoto(for: photoImageData, withLivePhotoURL: outputFileURL)
             } catch {
-                print("[Error]: \(error.localizedDescription)")
+                guard let error = error as? PHPhotosError else { return }
+                print("[Error]: \(error.localizedDescription), \(error.errorUserInfo)")
             }
         }
     }
 
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         print("[Capture]: finished capturing - \(resolvedSettings.uniqueID)")
+        photoImageData = nil
     }
 }

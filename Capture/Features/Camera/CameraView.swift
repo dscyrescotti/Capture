@@ -17,34 +17,47 @@ struct CameraView: View {
     }
 
     var body: some View {
-        cameraPreview
-            .ignoresSafeArea()
-            .overlay {
-                cameraOverlay
+        VStack(spacing: 0) {
+            cameraTopActions
+            ZStack {
+                cameraPreview
+                    .onAppear {
+                        viewModel.hideCameraPreview(false)
+                        viewModel.camera.startSession()
+                    }
+                    .onDisappear {
+                        viewModel.hideCameraPreview(true)
+                        viewModel.camera.stopSession()
+                    }
+                GeometryReader { proxy in
+                    CameraFrameBorder()
+                        .foregroundColor(.white.opacity(0.8))
+                        .onAppear {
+                            viewModel.camera.setCaptureRect(with: proxy.frame(in: .global))
+                        }
+                }
             }
-            .task {
-                await viewModel.checkPhotoLibraryPermission()
-                await viewModel.checkCameraPermission()
-            }
-            .errorAlert($viewModel.cameraError) { error, completion in
-                cameraAlertActions(for: error, completion: completion)
-            }
-            .onChange(of: scenePhase, perform: viewModel.onChangeScenePhase(to:))
-            .preferredColorScheme(.dark)
+            cameraBottomActions
+        }
+        .background {
+            cameraPreview
+                .edgesIgnoringSafeArea(.all)
+        }
+        .task {
+            await viewModel.checkPhotoLibraryPermission()
+            await viewModel.checkCameraPermission()
+        }
+        .errorAlert($viewModel.cameraError) { error, completion in
+            cameraAlertActions(for: error, completion: completion)
+        }
+        .onChange(of: scenePhase, perform: viewModel.onChangeScenePhase(to:))
+        .preferredColorScheme(.dark)
     }
 
     @ViewBuilder
     var cameraPreview: some View {
         if viewModel.cameraPermission == .authorized {
             CameraPreviewLayer(camera: viewModel.camera)
-                .onAppear {
-                    viewModel.hideCameraPreview(false)
-                    viewModel.camera.startSession()
-                }
-                .onDisappear {
-                    viewModel.hideCameraPreview(true)
-                    viewModel.camera.stopSession()
-                }
                 .blur(radius: viewModel.blursCameraPreview ? 5 : 0)
                 .overlay {
                     if viewModel.hidesCameraPreview {
@@ -54,21 +67,6 @@ struct CameraView: View {
                 }
         } else {
             Color.black
-        }
-    }
-
-    @ViewBuilder
-    var cameraOverlay: some View {
-        VStack(spacing: 0) {
-            cameraTopActions
-            GeometryReader { proxy in
-                CameraFrameBorder()
-                    .foregroundColor(.white.opacity(0.8))
-                    .onAppear {
-                        viewModel.camera.setCaptureRect(with: proxy.frame(in: .global))
-                    }
-            }
-            cameraBottomActions
         }
     }
 
