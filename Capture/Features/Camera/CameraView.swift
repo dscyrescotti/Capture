@@ -21,14 +21,6 @@ struct CameraView: View {
             cameraTopActions
             ZStack {
                 cameraPreview
-                    .onAppear {
-                        viewModel.hideCameraPreview(false)
-                        viewModel.camera.startSession()
-                    }
-                    .onDisappear {
-                        viewModel.hideCameraPreview(true)
-                        viewModel.camera.stopSession()
-                    }
                 GeometryReader { proxy in
                     CameraFrameBorder()
                         .foregroundColor(.white.opacity(0.8))
@@ -38,10 +30,6 @@ struct CameraView: View {
                 }
             }
             cameraBottomActions
-        }
-        .background {
-            cameraPreview
-                .edgesIgnoringSafeArea(.all)
         }
         .task {
             await viewModel.checkPhotoLibraryPermission()
@@ -58,6 +46,14 @@ struct CameraView: View {
     var cameraPreview: some View {
         if viewModel.cameraPermission == .authorized {
             CameraPreviewLayer(camera: viewModel.camera)
+                .onAppear {
+                    viewModel.hideCameraPreview(false)
+                    viewModel.camera.startSession()
+                }
+                .onDisappear {
+                    viewModel.hideCameraPreview(true)
+                    viewModel.camera.stopSession()
+                }
                 .blur(radius: viewModel.blursCameraPreview ? 5 : 0)
                 .overlay {
                     if viewModel.hidesCameraPreview {
