@@ -18,7 +18,7 @@ class CameraViewModel: ObservableObject {
     @Published var rearDeviceIndex: Int = 0
     @Published var cameraError: CameraError?
     @Published var frontDeviceIndex: Int = 0
-    @Published var disablesActions: Bool = false
+    @Published var enablesLivePhoto: Bool = true
     @Published var cameraMode: CameraMode = .none
     @Published var hidesCameraPreview: Bool = true
     @Published var blursCameraPreview: Bool = false
@@ -65,29 +65,39 @@ extension CameraViewModel {
     }
 
     func switchCameraDevice(to index: Int, for cameraMode: CameraMode) {
-        self.disablesActions = true
         withAnimation(.linear(duration: 0.2)) {
             self.blursCameraPreview = true
         }
         Task {
             do {
-                let cameraMode = try camera.switchCameraDevice(to: index, for: cameraMode)
+                let (cameraMode, enablesLivePhoto) = try await camera.switchCameraDevice(to: index, for: cameraMode)
                 await MainActor.run {
                     self.cameraMode = cameraMode
-                    self.disablesActions = false
+                    self.enablesLivePhoto = enablesLivePhoto
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
                     }
                 }
             } catch {
                 await MainActor.run {
-                    self.disablesActions = false
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
                     }
                     self.cameraError = error as? CameraError ?? .unknownError
                 }
             }
+        }
+    }
+
+    func toggleLivePhoto() {
+        if camera.isAvailableLivePhoto {
+            enablesLivePhoto.toggle()
+        }
+    }
+
+    func capturePhoto() {
+        Task {
+            camera.capturePhoto(enablesLivePhoto: enablesLivePhoto)
         }
     }
 }
@@ -149,9 +159,10 @@ extension CameraViewModel {
         case .authorized:
             Task {
                 do {
-                    let cameraMode = try camera.configureSession()
+                    let (cameraMode, isAvailableLivePhoto) = try await camera.configureSession()
                     await MainActor.run {
                         self.cameraMode = cameraMode
+                        self.enablesLivePhoto = isAvailableLivePhoto
                     }
                 } catch {
                     await MainActor.run {

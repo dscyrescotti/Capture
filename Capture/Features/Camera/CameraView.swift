@@ -22,6 +22,9 @@ struct CameraView: View {
             .overlay(alignment: .bottom) {
                 cameraBottomActions
             }
+            .overlay(alignment: .top) {
+                cameraTopActions
+            }
             .task {
                 await viewModel.checkPhotoLibraryPermission()
                 await viewModel.checkCameraPermission()
@@ -31,7 +34,6 @@ struct CameraView: View {
             }
             .onChange(of: scenePhase, perform: viewModel.onChangeScenePhase(to:))
             .preferredColorScheme(.dark)
-            .disabled(viewModel.disablesActions)
     }
 
     @ViewBuilder
@@ -60,7 +62,7 @@ struct CameraView: View {
 
     @ViewBuilder
     var cameraBottomActions: some View {
-        VStack(spacing: 15) {
+        VStack(spacing: 20) {
             switch viewModel.cameraMode {
             case .front:
                 cameraPicker(selection: $viewModel.frontDeviceIndex, devices: viewModel.frontDevices)
@@ -77,37 +79,35 @@ struct CameraView: View {
                     .frame(height: 25)
             }
             HStack {
-                Spacer()
                 Color.clear
-                    .frame(width: 40, height: 40)
-                Spacer()
+                    .frame(width: 60, height: 60)
                 Spacer()
                 Button {
-                    viewModel.camera.capturePhoto()
+                    viewModel.capturePhoto()
                 } label: {
                     Circle()
                 }
-                .padding(10)
+                .padding(5)
                 .background {
                     Circle()
-                        .stroke(lineWidth: 5)
+                        .stroke(lineWidth: 3)
                 }
-                .frame(width: 85, height: 85)
-                Spacer()
+                .frame(width: 80, height: 80)
                 Spacer()
                 Button {
                     viewModel.switchCameraMode()
                 } label: {
-                    Image(systemName: "arrow.triangle.2.circlepath.camera")
-                        .font(.largeTitle)
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.title)
+                        .frame(width: 60, height: 60)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .clipShape(Circle())
                 }
-                .frame(width: 40, height: 40)
-                Spacer()
             }
         }
         .foregroundColor(.white)
         .padding(.all, 15)
-        .background(.black.opacity(0.6), ignoresSafeAreaEdges: .bottom)
+        .background(.black.opacity(0.7), ignoresSafeAreaEdges: .bottom)
         .errorAlert($viewModel.photoLibraryError) { error, completion in
             photoLibraryAlertActions(for: error, completion: completion)
         }
@@ -121,5 +121,23 @@ struct CameraView: View {
             }
         }
         .pickerStyle(.segmented)
+    }
+
+    @ViewBuilder
+    var cameraTopActions: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Button {
+                    viewModel.toggleLivePhoto()
+                } label: {
+                    Image(systemName: viewModel.enablesLivePhoto ? "livephoto" : "livephoto.slash")
+                        .font(.title3)
+                }
+            }
+        }
+        .foregroundColor(.white)
+        .padding(.all, 15)
+        .background(.black.opacity(0.7), ignoresSafeAreaEdges: .top)
     }
 }

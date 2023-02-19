@@ -13,7 +13,8 @@ class CameraService: NSObject {
 
     // MARK: - Session
     let captureSession: AVCaptureSession
-    var sessionQueue: DispatchQueue = DispatchQueue(label: "capture-session")
+    var sessionQueue: DispatchQueue = DispatchQueue(label: "capture-session", qos: .userInteractive, attributes: .concurrent)
+    var isConfigured: Bool = false
 
     // MARK: - Devices
     private lazy var captureDevices: [AVCaptureDevice] = {
@@ -66,12 +67,14 @@ class CameraService: NSObject {
     }
 
     func startSession() {
+        guard isConfigured && !captureSession.isRunning else { return }
         sessionQueue.async { [unowned self] in
             captureSession.startRunning()
         }
     }
 
     func stopSession() {
+        guard isConfigured else { return }
         sessionQueue.async { [unowned self] in
             captureSession.stopRunning()
         }
@@ -96,29 +99,38 @@ extension CameraService {
 
 // MARK: - Configuration
 extension CameraService {
-    func configureSession() throws -> CameraMode {
-        captureSession.sessionPreset = .photo
-        if captureDevices.isEmpty {
-            throw CameraError.cameraUnavalible
-        }
-        var cameraMode: CameraMode = .none
-        if !rearCaptureDevices.isEmpty {
-            cameraMode = try configureCameraInput(from: rearCaptureDevices, for: .rear)
-        } else if !frontCaptureDevices.isEmpty {
-            cameraMode = try configureCameraInput(from: frontCaptureDevices, for: .front)
-        }
-        try configureCameraOutput()
-        sessionQueue.async { [unowned self] in
-            captureSession.beginConfiguration()
-            if let captureInput {
-                captureSession.addInput(captureInput)
+    func configureSession() async throws -> (CameraMode, Bool) {
+        try await withCheckedThrowingContinuation { [unowned self] (continuation: CheckedContinuation<(CameraMode, Bool), Error>) in
+            sessionQueue.async { [unowned self] in
+                captureSession.sessionPreset = .photo
+                if captureDevices.isEmpty {
+                    continuation.resume(throwing: CameraError.cameraUnavalible)
+                }
+                var cameraMode: CameraMode = .none
+                do {
+                    if !rearCaptureDevices.isEmpty {
+                        cameraMode = try configureCameraInput(from: rearCaptureDevices, for: .rear)
+                    } else if !frontCaptureDevices.isEmpty {
+                        cameraMode = try configureCameraInput(from: frontCaptureDevices, for: .front)
+                    }
+                    try configureCameraOutput()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+                updateConfiguration { [unowned self] in
+                    captureSession.beginConfiguration()
+                    if let captureInput {
+                        captureSession.addInput(captureInput)
+                    }
+                    if let captureOutput {
+                        captureSession.addOutput(captureOutput)
+                    }
+                    captureSession.commitConfiguration()
+                }
+                startSession()
+                continuation.resume(returning: (cameraMode, isAvailableLivePhoto))
             }
-            if let captureOutput {
-                captureSession.addOutput(captureOutput)
-            }
-            captureSession.commitConfiguration()
         }
-        return cameraMode
     }
 
     @discardableResult
@@ -129,7 +141,11 @@ extension CameraService {
             throw CameraError.unknownError
         }
         if let captureInput {
-            captureSession.removeInput(captureInput)
+            updateConfiguration { [unowned self] in
+                captureSession.beginConfiguration()
+                captureSession.removeInput(captureInput)
+                captureSession.commitConfiguration()
+            }
         }
         let newCaptureInput = try AVCaptureDeviceInput(device: captureDevice)
         guard captureSession.canAddInput(newCaptureInput) else {
@@ -151,24 +167,38 @@ extension CameraService {
 
 // MARK: - Camera Switching
 extension CameraService {
-    func switchCameraDevice(to index: Int, for captureMode: CameraMode) throws -> CameraMode {
-        var cameraMode: CameraMode
-        switch captureMode {
-        case .front:
-            cameraMode = try configureCameraInput(from: frontCaptureDevices, for: captureMode, at: index)
-        case .rear:
-            cameraMode = try configureCameraInput(from: rearCaptureDevices, for: captureMode, at: index)
-        case .none:
-            cameraMode = .none
-        }
-        sessionQueue.async { [unowned self] in
-            captureSession.beginConfiguration()
-            if let captureInput {
-                captureSession.addInput(captureInput)
+    func switchCameraDevice(to index: Int, for captureMode: CameraMode) async throws -> (CameraMode, Bool) {
+        try await withCheckedThrowingContinuation {  [unowned self] (continuation: CheckedContinuation<(CameraMode, Bool), Error>) in
+            sessionQueue.async { [unowned self] in
+                var cameraMode: CameraMode = .none
+                do {
+                    switch captureMode {
+                    case .front:
+                        cameraMode = try configureCameraInput(from: frontCaptureDevices, for: captureMode, at: index)
+                    case .rear:
+                        cameraMode = try configureCameraInput(from: rearCaptureDevices, for: captureMode, at: index)
+                    case .none:
+                        cameraMode = .none
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+                if let captureInput {
+                    updateConfiguration { [unowned self] in
+                        captureSession.beginConfiguration()
+                            captureSession.addInput(captureInput)
+                        captureSession.commitConfiguration()
+                    }
+                }
+                continuation.resume(returning: (cameraMode, isAvailableLivePhoto))
             }
-            captureSession.commitConfiguration()
         }
-        return cameraMode
+    }
+
+    private func updateConfiguration(_ execute: @escaping () -> Void) {
+        isConfigured = false
+        execute()
+        isConfigured = true
     }
 }
 
@@ -184,7 +214,12 @@ extension CameraService {
 }
 
 extension CameraService: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput, willBeginCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
+        print("[Capture]: will begin processing photo - \(resolvedSettings.uniqueID)")
+    }
+
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        print("[Capture]: finished processing photo - \(photo.resolvedSettings.uniqueID)")
         if let error {
             print("[ERROR]: \(error.localizedDescription)")
             return
@@ -193,6 +228,7 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
     }
 
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingLivePhotoToMovieFileAt outputFileURL: URL, duration: CMTime, photoDisplayTime: CMTime, resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
+        print("[Capture]: finished processing live photo - \(resolvedSettings.uniqueID)")
         if let error {
             print("[Error]: \(error.localizedDescription)")
             return
@@ -208,5 +244,9 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
                 print("[Error]: \(error.localizedDescription)")
             }
         }
+    }
+
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
+        print("[Capture]: finished capturing - \(resolvedSettings.uniqueID)")
     }
 }
