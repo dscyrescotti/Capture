@@ -19,9 +19,17 @@ struct CameraView: View {
     var body: some View {
         VStack(spacing: 0) {
             cameraTopActions
-            ZStack {
-                cameraPreview
-                GeometryReader { proxy in
+            GeometryReader { proxy in
+                ZStack {
+                    cameraPreview
+                        .onTapGesture(coordinateSpace: .local) { point in
+                            viewModel.changePointOfInterest(to: point, in: proxy.frame(in: .local))
+                        }
+                        .overlay {
+                            Circle()
+                                .frame(width: 5, height: 5)
+                                .position(viewModel.pointOfInterest)
+                        }
                     CameraFrameBorder()
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -146,7 +154,23 @@ struct CameraView: View {
                             EmptyView()
                         }
                     }
-                    .font(.title3)
+                }
+                if let focusMode = viewModel.focusMode {
+                    Button {
+                        viewModel.switchFocusMode()
+                    } label: {
+                        switch focusMode {
+                        case .locked:
+                            Image(systemName: "photo.circle.fill")
+                        case .autoFocus:
+                            Image(systemName: "photo.circle")
+                                .foregroundColor(.yellow)
+                        case .continuousAutoFocus:
+                            Image(systemName: "photo.circle")
+                        default:
+                            EmptyView()
+                        }
+                    }
                 }
                 Spacer()
                 if viewModel.isAvailableLivePhoto {
@@ -154,7 +178,6 @@ struct CameraView: View {
                         viewModel.toggleLivePhoto()
                     } label: {
                         Image(systemName: viewModel.enablesLivePhoto ? "livephoto" : "livephoto.slash")
-                            .font(.title3)
                     }
                 }
             }
@@ -162,5 +185,6 @@ struct CameraView: View {
         .foregroundColor(.white)
         .padding(.all, 15)
         .background(.black.opacity(0.7), ignoresSafeAreaEdges: .top)
+        .font(.title2)
     }
 }

@@ -23,10 +23,12 @@ class CameraViewModel: ObservableObject {
     @Published var cameraMode: CameraMode = .none
     @Published var hidesCameraPreview: Bool = true
     @Published var blursCameraPreview: Bool = false
+    @Published var pointOfInterest: CGPoint = .zero
     @Published var isAvailableLivePhoto: Bool = false
     @Published var isAvailableFlashLight: Bool = false
     @Published var photoLibraryError: PhotoLibraryError?
     @Published var flashMode: AVCaptureDevice.FlashMode = .off
+    @Published var focusMode: AVCaptureDevice.FocusMode? = nil
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
 
     var camera: CameraService { dependency.camera }
@@ -48,6 +50,14 @@ class CameraViewModel: ObservableObject {
         withAnimation {
             hidesCameraPreview = value
         }
+    }
+
+    @MainActor
+    func updateState(_ cameraMode: CameraMode) {
+        self.cameraMode = cameraMode
+        self.isAvailableLivePhoto = camera.isAvailableLivePhoto
+        self.isAvailableFlashLight = camera.isAvailableFlashLight
+        self.focusMode = camera.captureDevice?.focusMode
     }
 }
 
@@ -77,9 +87,7 @@ extension CameraViewModel {
             do {
                 let cameraMode = try await camera.switchCameraDevice(to: index, for: cameraMode)
                 await MainActor.run {
-                    self.cameraMode = cameraMode
-                    self.isAvailableLivePhoto = camera.isAvailableLivePhoto
-                    self.isAvailableFlashLight = camera.isAvailableFlashLight
+                    updateState(cameraMode)
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
                     }
@@ -109,6 +117,63 @@ extension CameraViewModel {
             case .on: flashMode = .off
             @unknown default:
                 flashMode = .off
+            }
+        }
+    }
+
+    func switchFocusMode() {
+        Task {
+            let newFocusMode: AVCaptureDevice.FocusMode
+            let modes: [AVCaptureDevice.FocusMode] = [.autoFocus, .continuousAutoFocus, .locked].filter {
+                if $0 == focusMode {
+                    return false
+                }
+                return camera.isFocusModeSupported($0)
+            }
+            if modes.isEmpty {
+                await MainActor.run {
+                    cameraError = .unknownError
+                }
+                return
+            }
+            switch focusMode {
+            case .autoFocus:
+                newFocusMode = modes.contains(.continuousAutoFocus) ? .continuousAutoFocus : .locked
+            case .continuousAutoFocus:
+                newFocusMode = modes.contains(.locked) ? .locked : .autoFocus
+            case .locked:
+                newFocusMode = modes.contains(.autoFocus) ? .autoFocus : .continuousAutoFocus
+            default:
+                return
+            }
+            do {
+                try camera.switchFocusMode(to: newFocusMode)
+                await MainActor.run {
+                    focusMode = newFocusMode
+                }
+            } catch {
+                await MainActor.run {
+                    cameraError = error as? CameraError ?? .unknownError
+                }
+            }
+        }
+    }
+
+    func changePointOfInterest(to point: CGPoint, in frame: CGRect) {
+        Task {
+            do {
+                let offset: CGFloat = 60
+                let x = max(offset, min(point.x, frame.maxX - offset))
+                let y = max(offset, min(point.y, frame.maxY - offset))
+                let point = CGPoint(x: x, y: y)
+                await MainActor.run {
+                    pointOfInterest = point
+                }
+                try await camera.changePointOfInterest(to: point)
+            } catch {
+                await MainActor.run {
+                    cameraError = error as? CameraError ?? .unknownError
+                }
             }
         }
     }
@@ -189,9 +254,7 @@ extension CameraViewModel {
                 do {
                     let cameraMode = try await camera.configureSession()
                     await MainActor.run {
-                        self.cameraMode = cameraMode
-                        self.isAvailableLivePhoto = camera.isAvailableLivePhoto
-                        self.isAvailableFlashLight = camera.isAvailableFlashLight
+                        updateState(cameraMode)
                     }
                 } catch {
                     await MainActor.run {

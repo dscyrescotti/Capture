@@ -5,7 +5,7 @@
 //  Created by Aye Chan on 2/16/23.
 //
 
-import UIKit
+import SwiftUI
 import Foundation
 import AVFoundation
 import Photos
@@ -44,6 +44,9 @@ class CameraService: NSObject {
     var captureDevice: AVCaptureDevice?
     var isAvailableFlashLight: Bool { captureDevice?.isFlashAvailable ?? false }
 
+    #warning("Remove it later")
+    var focusObserver: NSKeyValueObservation?
+
     // MARK: - Input
     var captureInput: AVCaptureInput?
 
@@ -67,6 +70,11 @@ class CameraService: NSObject {
         self.captureSession = AVCaptureSession()
         self.cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         super.init()
+    }
+
+    func isFocusModeSupported(_ focusMode: AVCaptureDevice.FocusMode) -> Bool {
+        guard let captureDevice else { return false }
+        return captureDevice.isFocusModeSupported(focusMode)
     }
 }
 
@@ -101,6 +109,46 @@ extension CameraService {
         }
         captureSettings.flashMode = flashMode
         captureOutput.capturePhoto(with: captureSettings, delegate: self)
+    }
+
+    func switchFocusMode(to focusMode: AVCaptureDevice.FocusMode) throws {
+        guard let captureDevice else { return }
+        try captureDevice.lockForConfiguration()
+        captureDevice.focusMode = focusMode
+        captureDevice.unlockForConfiguration()
+    }
+
+    func changePointOfInterest(to point: CGPoint) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            sessionQueue.async { [unowned self] in
+                let relativeX = point.x / cameraPreviewLayer.frame.size.width
+                let relativeY = point.y / cameraPreviewLayer.frame.size.height
+                let pointOfInterest = CGPoint(x: relativeX, y: relativeY)
+                print(pointOfInterest, point)
+                guard let captureDevice else {
+                    continuation.resume(throwing: CameraError.unknownError)
+                    return
+                }
+                guard captureDevice.isFocusModeSupported(.autoFocus) else {
+                    continuation.resume(throwing: CameraError.unknownError)
+                    return
+                }
+                do {
+                    try captureDevice.lockForConfiguration()
+                    if captureDevice.isFocusPointOfInterestSupported {
+                        captureDevice.focusMode = .continuousAutoFocus
+                        captureDevice.focusPointOfInterest = pointOfInterest
+                    }
+                    if captureDevice.isExposurePointOfInterestSupported {
+                        captureDevice.exposurePointOfInterest = pointOfInterest
+                    }
+                    captureDevice.unlockForConfiguration()
+                    continuation.resume(returning: ())
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
     }
 }
 
@@ -159,6 +207,12 @@ extension CameraService {
             throw CameraError.unknownError
         }
         self.captureInput = newCaptureInput
+        #warning("Remove it later")
+        focusObserver?.invalidate()
+        focusObserver = newCaptureInput.device.observe(\.isAdjustingFocus, options: .new) { [weak self] _, change in
+            guard let self, let isAdjustingFocus = change.newValue else { return }
+            print("[CHANGE]: \(isAdjustingFocus), \(self.captureDevice?.focusPointOfInterest)")
+        }
         return cameraMode
     }
 
