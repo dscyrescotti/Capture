@@ -24,7 +24,9 @@ class CameraViewModel: ObservableObject {
     @Published var hidesCameraPreview: Bool = true
     @Published var blursCameraPreview: Bool = false
     @Published var isAvailableLivePhoto: Bool = false
+    @Published var isAvailableFlashLight: Bool = false
     @Published var photoLibraryError: PhotoLibraryError?
+    @Published var flashMode: AVCaptureDevice.FlashMode = .off
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
 
     var camera: CameraService { dependency.camera }
@@ -77,6 +79,7 @@ extension CameraViewModel {
                 await MainActor.run {
                     self.cameraMode = cameraMode
                     self.isAvailableLivePhoto = camera.isAvailableLivePhoto
+                    self.isAvailableFlashLight = camera.isAvailableFlashLight
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
                     }
@@ -93,14 +96,26 @@ extension CameraViewModel {
     }
 
     func toggleLivePhoto() {
-        if camera.isAvailableLivePhoto {
+        if isAvailableLivePhoto {
             enablesLivePhoto.toggle()
+        }
+    }
+
+    func switchFlashMode() {
+        if isAvailableFlashLight {
+            switch flashMode {
+            case .off: flashMode = .auto
+            case .auto: flashMode = .on
+            case .on: flashMode = .off
+            @unknown default:
+                flashMode = .off
+            }
         }
     }
 
     func capturePhoto() {
         Task {
-            camera.capturePhoto(enablesLivePhoto: enablesLivePhoto)
+            camera.capturePhoto(enablesLivePhoto: enablesLivePhoto, flashMode: flashMode)
         }
     }
 }
@@ -176,6 +191,7 @@ extension CameraViewModel {
                     await MainActor.run {
                         self.cameraMode = cameraMode
                         self.isAvailableLivePhoto = camera.isAvailableLivePhoto
+                        self.isAvailableFlashLight = camera.isAvailableFlashLight
                     }
                 } catch {
                     await MainActor.run {

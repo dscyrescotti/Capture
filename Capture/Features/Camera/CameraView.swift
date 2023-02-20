@@ -24,9 +24,6 @@ struct CameraView: View {
                 GeometryReader { proxy in
                     CameraFrameBorder()
                         .foregroundColor(.white.opacity(0.8))
-                        .onAppear {
-                            viewModel.camera.setCaptureRect(with: proxy.frame(in: .global))
-                        }
                 }
             }
             cameraBottomActions
@@ -100,16 +97,14 @@ struct CameraView: View {
                 }
                 .frame(width: 80, height: 80)
                 Spacer()
-                if viewModel.isAvailableLivePhoto {
-                    Button {
-                        viewModel.switchCameraMode()
-                    } label: {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.title)
-                            .frame(width: 60, height: 60)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .clipShape(Circle())
-                    }
+                Button {
+                    viewModel.switchCameraMode()
+                } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.title)
+                        .frame(width: 60, height: 60)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .clipShape(Circle())
                 }
             }
         }
@@ -135,12 +130,32 @@ struct CameraView: View {
     var cameraTopActions: some View {
         VStack {
             HStack {
+                if viewModel.isAvailableFlashLight {
+                    Button {
+                        viewModel.switchFlashMode()
+                    } label: {
+                        switch viewModel.flashMode {
+                        case .auto:
+                            Image(systemName: "bolt.circle")
+                        case .off:
+                            Image(systemName: "bolt.slash.circle")
+                        case .on:
+                            Image(systemName: "bolt.circle")
+                                .foregroundColor(.yellow)
+                        default:
+                            EmptyView()
+                        }
+                    }
+                    .font(.title3)
+                }
                 Spacer()
-                Button {
-                    viewModel.toggleLivePhoto()
-                } label: {
-                    Image(systemName: viewModel.enablesLivePhoto ? "livephoto" : "livephoto.slash")
-                        .font(.title3)
+                if viewModel.isAvailableLivePhoto {
+                    Button {
+                        viewModel.toggleLivePhoto()
+                    } label: {
+                        Image(systemName: viewModel.enablesLivePhoto ? "livephoto" : "livephoto.slash")
+                            .font(.title3)
+                    }
                 }
             }
         }

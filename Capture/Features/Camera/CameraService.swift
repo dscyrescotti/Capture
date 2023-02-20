@@ -55,7 +55,6 @@ class CameraService: NSObject {
         }
         return captureOutput.isLivePhotoCaptureSupported
     }
-    private var captureRect: CGRect = .zero
 
     // MARK: - Preview
     let cameraPreviewLayer: AVCaptureVideoPreviewLayer
@@ -69,7 +68,10 @@ class CameraService: NSObject {
         self.cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         super.init()
     }
+}
 
+// MARK: - Life Cycle
+extension CameraService {
     func startSession() {
         guard isConfigured && !captureSession.isRunning else { return }
         sessionQueue.async { [unowned self] in
@@ -83,15 +85,11 @@ class CameraService: NSObject {
             captureSession.stopRunning()
         }
     }
-
-    func setCaptureRect(with rect: CGRect) {
-        self.captureRect = rect
-    }
 }
 
 // MARK: - Actions
 extension CameraService {
-    func capturePhoto(enablesLivePhoto: Bool = true) {
+    func capturePhoto(enablesLivePhoto: Bool = true, flashMode: AVCaptureDevice.FlashMode) {
         guard let captureOutput = captureOutput as? AVCapturePhotoOutput else { return }
         let captureSettings: AVCapturePhotoSettings
         captureOutput.isLivePhotoCaptureEnabled = isAvailableLivePhoto && enablesLivePhoto
@@ -101,6 +99,7 @@ extension CameraService {
         } else {
             captureSettings = AVCapturePhotoSettings()
         }
+        captureSettings.flashMode = flashMode
         captureOutput.capturePhoto(with: captureSettings, delegate: self)
     }
 }
