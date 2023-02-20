@@ -110,6 +110,7 @@ extension CameraViewModel {
         switch scenePhase {
         case .active:
             Task {
+                camera.startSession()
                 try? await Task.sleep(for: .seconds(0.4))
                 await MainActor.run {
                     hideCameraPreview(false)
