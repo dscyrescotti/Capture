@@ -100,14 +100,16 @@ struct CameraView: View {
                 }
                 .frame(width: 80, height: 80)
                 Spacer()
-                Button {
-                    viewModel.switchCameraMode()
-                } label: {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.title)
-                        .frame(width: 60, height: 60)
-                        .background(.ultraThinMaterial, in: Circle())
-                        .clipShape(Circle())
+                if viewModel.isAvailableLivePhoto {
+                    Button {
+                        viewModel.switchCameraMode()
+                    } label: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.title)
+                            .frame(width: 60, height: 60)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .clipShape(Circle())
+                    }
                 }
             }
         }

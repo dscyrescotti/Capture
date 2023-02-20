@@ -23,6 +23,7 @@ class CameraViewModel: ObservableObject {
     @Published var cameraMode: CameraMode = .none
     @Published var hidesCameraPreview: Bool = true
     @Published var blursCameraPreview: Bool = false
+    @Published var isAvailableLivePhoto: Bool = false
     @Published var photoLibraryError: PhotoLibraryError?
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
 
@@ -75,7 +76,7 @@ extension CameraViewModel {
                 let cameraMode = try await camera.switchCameraDevice(to: index, for: cameraMode)
                 await MainActor.run {
                     self.cameraMode = cameraMode
-                    self.enablesLivePhoto = camera.isAvailableLivePhoto
+                    self.isAvailableLivePhoto = camera.isAvailableLivePhoto
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
                     }
@@ -174,7 +175,7 @@ extension CameraViewModel {
                     let cameraMode = try await camera.configureSession()
                     await MainActor.run {
                         self.cameraMode = cameraMode
-                        self.enablesLivePhoto = camera.isAvailableLivePhoto
+                        self.isAvailableLivePhoto = camera.isAvailableLivePhoto
                     }
                 } catch {
                     await MainActor.run {
