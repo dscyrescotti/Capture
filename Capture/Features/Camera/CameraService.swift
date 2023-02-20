@@ -44,9 +44,6 @@ class CameraService: NSObject {
     var captureDevice: AVCaptureDevice?
     var isAvailableFlashLight: Bool { captureDevice?.isFlashAvailable ?? false }
 
-    #warning("Remove it later")
-    var focusObserver: NSKeyValueObservation?
-
     // MARK: - Input
     var captureInput: AVCaptureInput?
 
@@ -75,6 +72,11 @@ class CameraService: NSObject {
     func isFocusModeSupported(_ focusMode: AVCaptureDevice.FocusMode) -> Bool {
         guard let captureDevice else { return false }
         return captureDevice.isFocusModeSupported(focusMode)
+    }
+
+    func isExposureModeSupported(_ exposureMode: AVCaptureDevice.ExposureMode) -> Bool {
+        guard let captureDevice else { return false }
+        return captureDevice.isExposureModeSupported(exposureMode)
     }
 }
 
@@ -111,11 +113,43 @@ extension CameraService {
         captureOutput.capturePhoto(with: captureSettings, delegate: self)
     }
 
-    func switchFocusMode(to focusMode: AVCaptureDevice.FocusMode) throws {
-        guard let captureDevice else { return }
-        try captureDevice.lockForConfiguration()
-        captureDevice.focusMode = focusMode
-        captureDevice.unlockForConfiguration()
+    func switchFocusMode(to focusMode: AVCaptureDevice.FocusMode) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            sessionQueue.async { [unowned self] in
+                guard let captureDevice else {
+                    continuation.resume(throwing: CameraError.unknownError)
+                    return
+                }
+                do {
+                    try captureDevice.lockForConfiguration()
+                    captureDevice.focusMode = focusMode
+                    captureDevice.unlockForConfiguration()
+                    continuation.resume(returning: ())
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+
+    }
+
+    func switchExposureMode(to exposureMode: AVCaptureDevice.ExposureMode) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            sessionQueue.async { [unowned self] in
+                guard let captureDevice else {
+                    continuation.resume(throwing: CameraError.unknownError)
+                    return
+                }
+                do {
+                    try captureDevice.lockForConfiguration()
+                    captureDevice.exposureMode = exposureMode
+                    captureDevice.unlockForConfiguration()
+                    continuation.resume(returning: ())
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
     }
 
     func changePointOfInterest(to point: CGPoint) async throws {
@@ -124,22 +158,18 @@ extension CameraService {
                 let relativeX = point.x / cameraPreviewLayer.frame.size.width
                 let relativeY = point.y / cameraPreviewLayer.frame.size.height
                 let pointOfInterest = CGPoint(x: relativeX, y: relativeY)
-                print(pointOfInterest, point)
                 guard let captureDevice else {
-                    continuation.resume(throwing: CameraError.unknownError)
-                    return
-                }
-                guard captureDevice.isFocusModeSupported(.autoFocus) else {
                     continuation.resume(throwing: CameraError.unknownError)
                     return
                 }
                 do {
                     try captureDevice.lockForConfiguration()
                     if captureDevice.isFocusPointOfInterestSupported {
-                        captureDevice.focusMode = .continuousAutoFocus
+                        captureDevice.focusMode = captureDevice.focusMode
                         captureDevice.focusPointOfInterest = pointOfInterest
                     }
                     if captureDevice.isExposurePointOfInterestSupported {
+                        captureDevice.exposureMode = captureDevice.exposureMode
                         captureDevice.exposurePointOfInterest = pointOfInterest
                     }
                     captureDevice.unlockForConfiguration()
@@ -207,12 +237,6 @@ extension CameraService {
             throw CameraError.unknownError
         }
         self.captureInput = newCaptureInput
-        #warning("Remove it later")
-        focusObserver?.invalidate()
-        focusObserver = newCaptureInput.device.observe(\.isAdjustingFocus, options: .new) { [weak self] _, change in
-            guard let self, let isAdjustingFocus = change.newValue else { return }
-            print("[CHANGE]: \(isAdjustingFocus), \(self.captureDevice?.focusPointOfInterest)")
-        }
         return cameraMode
     }
 

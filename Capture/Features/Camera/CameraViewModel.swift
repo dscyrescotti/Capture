@@ -29,6 +29,7 @@ class CameraViewModel: ObservableObject {
     @Published var photoLibraryError: PhotoLibraryError?
     @Published var flashMode: AVCaptureDevice.FlashMode = .off
     @Published var focusMode: AVCaptureDevice.FocusMode? = nil
+    @Published var exposureMode: AVCaptureDevice.ExposureMode? = nil
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
 
     var camera: CameraService { dependency.camera }
@@ -58,6 +59,7 @@ class CameraViewModel: ObservableObject {
         self.isAvailableLivePhoto = camera.isAvailableLivePhoto
         self.isAvailableFlashLight = camera.isAvailableFlashLight
         self.focusMode = camera.captureDevice?.focusMode
+        self.exposureMode = camera.captureDevice?.exposureMode
     }
 }
 
@@ -147,9 +149,47 @@ extension CameraViewModel {
                 return
             }
             do {
-                try camera.switchFocusMode(to: newFocusMode)
+                try await camera.switchFocusMode(to: newFocusMode)
                 await MainActor.run {
                     focusMode = newFocusMode
+                }
+            } catch {
+                await MainActor.run {
+                    cameraError = error as? CameraError ?? .unknownError
+                }
+            }
+        }
+    }
+
+    func switchExposureMode() {
+        Task {
+            let newExposureMode: AVCaptureDevice.ExposureMode
+            let modes: [AVCaptureDevice.ExposureMode] = [.autoExpose, .continuousAutoExposure, .locked].filter {
+                if $0 == exposureMode {
+                    return false
+                }
+                return camera.isExposureModeSupported($0)
+            }
+            if modes.isEmpty {
+                await MainActor.run {
+                    cameraError = .unknownError
+                }
+                return
+            }
+            switch exposureMode {
+            case .autoExpose:
+                newExposureMode = modes.contains(.continuousAutoExposure) ? .continuousAutoExposure : .locked
+            case .continuousAutoExposure:
+                newExposureMode = modes.contains(.locked) ? .locked : .autoExpose
+            case .locked:
+                newExposureMode = modes.contains(.autoExpose) ? .autoExpose : .continuousAutoExposure
+            default:
+                return
+            }
+            do {
+                try await camera.switchExposureMode(to: newExposureMode)
+                await MainActor.run {
+                    exposureMode = newExposureMode
                 }
             } catch {
                 await MainActor.run {

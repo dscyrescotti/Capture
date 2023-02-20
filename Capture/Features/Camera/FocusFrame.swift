@@ -1,5 +1,5 @@
 //
-//  CameraFrameBorder.swift
+//  FocusFrame.swift
 //  Capture
 //
 //  Created by Aye Chan on 2/19/23.
@@ -7,9 +7,14 @@
 
 import SwiftUI
 
-struct CameraFrameBorder: Shape {
-    let lineWidth: CGFloat = 4
-    let lineHeight: CGFloat = 40
+struct FocusFrame: Shape {
+    let lineWidth: CGFloat
+    let lineHeight: CGFloat
+
+    init(lineWidth: CGFloat = 4, lineHeight: CGFloat = 40) {
+        self.lineWidth = lineWidth
+        self.lineHeight = lineHeight
+    }
 
     func path(in rect: CGRect) -> Path {
         Path { path in

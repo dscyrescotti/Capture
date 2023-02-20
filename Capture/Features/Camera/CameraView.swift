@@ -26,11 +26,15 @@ struct CameraView: View {
                             viewModel.changePointOfInterest(to: point, in: proxy.frame(in: .local))
                         }
                         .overlay {
-                            Circle()
-                                .frame(width: 5, height: 5)
-                                .position(viewModel.pointOfInterest)
+                            if viewModel.pointOfInterest != .zero {
+                                Rectangle()
+                                    .stroke(lineWidth: 2)
+                                    .frame(width: 120, height: 120)
+                                    .position(viewModel.pointOfInterest)
+                                    .foregroundColor(.yellow)
+                            }
                         }
-                    CameraFrameBorder()
+                    FocusFrame()
                         .foregroundColor(.white.opacity(0.8))
                 }
             }
@@ -164,9 +168,26 @@ struct CameraView: View {
                             Image(systemName: "photo.circle.fill")
                         case .autoFocus:
                             Image(systemName: "photo.circle")
-                                .foregroundColor(.yellow)
                         case .continuousAutoFocus:
                             Image(systemName: "photo.circle")
+                                .foregroundColor(.yellow)
+                        default:
+                            EmptyView()
+                        }
+                    }
+                }
+                if let exposureMode = viewModel.exposureMode {
+                    Button {
+                        viewModel.switchExposureMode()
+                    } label: {
+                        switch exposureMode {
+                        case .locked:
+                            Image(systemName: "smallcircle.filled.circle.fill")
+                        case .autoExpose:
+                            Image(systemName: "smallcircle.filled.circle")
+                        case .continuousAutoExposure:
+                            Image(systemName: "smallcircle.filled.circle")
+                                .foregroundColor(.yellow)
                         default:
                             EmptyView()
                         }
