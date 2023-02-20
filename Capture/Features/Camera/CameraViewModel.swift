@@ -109,9 +109,10 @@ extension CameraViewModel {
     private func onChangeScenePhaseForCamera(to scenePhase: ScenePhase) {
         switch scenePhase {
         case .active:
+            let isRunning = camera.captureSession.isRunning
+            camera.startSession()
             Task {
-                camera.startSession()
-                try? await Task.sleep(for: .seconds(0.4))
+                try? await Task.sleep(for: .seconds(isRunning ? 0.4 : 0.6))
                 await MainActor.run {
                     hideCameraPreview(false)
                 }
@@ -127,7 +128,7 @@ extension CameraViewModel {
             if self.scenePhase == .active {
                 camera.stopSession()
                 Task {
-                    try? await Task.sleep(for: .seconds(0.8))
+                    try? await Task.sleep(for: .seconds(0.5))
                     await MainActor.run {
                         hideCameraPreview(true)
                     }
