@@ -42,6 +42,7 @@ class CameraService: NSObject {
         captureDevices.filter { $0.position == .back }
     }()
     var captureDevice: AVCaptureDevice?
+    var isAvailableFlashLight: Bool { captureDevice?.isFlashAvailable ?? false }
 
     // MARK: - Input
     var captureInput: AVCaptureInput?
@@ -106,8 +107,8 @@ extension CameraService {
 
 // MARK: - Configuration
 extension CameraService {
-    func configureSession() async throws -> (CameraMode, Bool) {
-        try await withCheckedThrowingContinuation { [unowned self] (continuation: CheckedContinuation<(CameraMode, Bool), Error>) in
+    func configureSession() async throws -> CameraMode {
+        try await withCheckedThrowingContinuation { [unowned self] (continuation: CheckedContinuation<CameraMode, Error>) in
             sessionQueue.async { [unowned self] in
                 captureSession.sessionPreset = .photo
                 if captureDevices.isEmpty {
@@ -135,7 +136,7 @@ extension CameraService {
                     captureSession.commitConfiguration()
                 }
                 startSession()
-                continuation.resume(returning: (cameraMode, isAvailableLivePhoto))
+                continuation.resume(returning: cameraMode)
             }
         }
     }
@@ -176,8 +177,8 @@ extension CameraService {
 
 // MARK: - Camera Switching
 extension CameraService {
-    func switchCameraDevice(to index: Int, for captureMode: CameraMode) async throws -> (CameraMode, Bool) {
-        try await withCheckedThrowingContinuation {  [unowned self] (continuation: CheckedContinuation<(CameraMode, Bool), Error>) in
+    func switchCameraDevice(to index: Int, for captureMode: CameraMode) async throws -> CameraMode {
+        try await withCheckedThrowingContinuation {  [unowned self] (continuation: CheckedContinuation<CameraMode, Error>) in
             sessionQueue.async { [unowned self] in
                 var cameraMode: CameraMode = .none
                 do {
@@ -199,7 +200,7 @@ extension CameraService {
                         captureSession.commitConfiguration()
                     }
                 }
-                continuation.resume(returning: (cameraMode, isAvailableLivePhoto))
+                continuation.resume(returning: cameraMode)
             }
         }
     }

@@ -72,10 +72,10 @@ extension CameraViewModel {
         }
         Task {
             do {
-                let (cameraMode, enablesLivePhoto) = try await camera.switchCameraDevice(to: index, for: cameraMode)
+                let cameraMode = try await camera.switchCameraDevice(to: index, for: cameraMode)
                 await MainActor.run {
                     self.cameraMode = cameraMode
-                    self.enablesLivePhoto = enablesLivePhoto
+                    self.enablesLivePhoto = camera.isAvailableLivePhoto
                     withAnimation(.linear(duration: 0.2)) {
                         self.blursCameraPreview = false
                     }
@@ -171,10 +171,10 @@ extension CameraViewModel {
         case .authorized:
             Task {
                 do {
-                    let (cameraMode, isAvailableLivePhoto) = try await camera.configureSession()
+                    let cameraMode = try await camera.configureSession()
                     await MainActor.run {
                         self.cameraMode = cameraMode
-                        self.enablesLivePhoto = isAvailableLivePhoto
+                        self.enablesLivePhoto = camera.isAvailableLivePhoto
                     }
                 } catch {
                     await MainActor.run {
