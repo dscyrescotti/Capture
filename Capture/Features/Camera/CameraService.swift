@@ -249,6 +249,12 @@ extension CameraService {
         if let captureDevice {
             try captureDevice.lockForConfiguration()
             captureDevice.videoZoomFactor = captureDevice.minAvailableVideoZoomFactor
+            if captureDevice.isFocusPointOfInterestSupported {
+                captureDevice.focusPointOfInterest = CGPoint(x: 0.5, y: 0.5)
+            }
+            if captureDevice.isExposurePointOfInterestSupported {
+                captureDevice.exposurePointOfInterest = CGPoint(x: 0.5, y: 0.5)
+            }
             captureDevice.unlockForConfiguration()
         }
         guard let captureDevice else {

@@ -57,6 +57,9 @@ class CameraViewModel: ObservableObject {
 
     @MainActor
     func updateState(_ cameraMode: CameraMode) {
+        withAnimation {
+            self.pointOfInterest = .zero
+        }
         self.cameraMode = cameraMode
         self.isAvailableLivePhoto = camera.isAvailableLivePhoto
         self.isAvailableFlashLight = camera.isAvailableFlashLight
@@ -206,12 +209,17 @@ extension CameraViewModel {
     func changePointOfInterest(to point: CGPoint, in frame: CGRect) {
         Task {
             do {
+                await MainActor.run {
+                    pointOfInterest = .zero
+                }
                 let offset: CGFloat = 60
                 let x = max(offset, min(point.x, frame.maxX - offset))
                 let y = max(offset, min(point.y, frame.maxY - offset))
                 let point = CGPoint(x: x, y: y)
                 await MainActor.run {
-                    pointOfInterest = point
+                    withAnimation {
+                        pointOfInterest = point
+                    }
                 }
                 try await camera.changePointOfInterest(to: point)
             } catch {

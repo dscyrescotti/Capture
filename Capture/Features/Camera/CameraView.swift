@@ -16,24 +16,6 @@ struct CameraView: View {
         self._viewModel = StateObject(wrappedValue: viewModel)
     }
 
-    private func magnificationGesture(size: CGSize) -> some Gesture {
-        MagnificationGesture()
-            .onChanged { value in
-                let range = viewModel.camera.zoomFactorRange
-                guard viewModel.zoomFactor >= range.min && viewModel.zoomFactor <= range.max else {
-                    return
-                }
-                let delta = value / viewModel.lastZoomFactor
-                viewModel.lastZoomFactor = value
-                viewModel.zoomFactor = min(range.max, max(range.min, viewModel.zoomFactor * delta))
-                viewModel.changeZoomFactor()
-            }
-            .onEnded { _ in
-                viewModel.lastZoomFactor = 1
-                viewModel.changeZoomFactor()
-            }
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             cameraTopActions
@@ -49,7 +31,9 @@ struct CameraView: View {
                                     .stroke(lineWidth: 2)
                                     .frame(width: 120, height: 120)
                                     .position(viewModel.pointOfInterest)
+                                    .animation(.none, value: viewModel.pointOfInterest)
                                     .foregroundColor(.yellow)
+                                    .transition(.opacity)
                             }
                         }
                     FocusFrame()
@@ -228,5 +212,23 @@ struct CameraView: View {
         .padding(.all, 15)
         .background(.black.opacity(0.7), ignoresSafeAreaEdges: .top)
         .font(.title2)
+    }
+
+    private func magnificationGesture(size: CGSize) -> some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                let range = viewModel.camera.zoomFactorRange
+                guard viewModel.zoomFactor >= range.min && viewModel.zoomFactor <= range.max else {
+                    return
+                }
+                let delta = value / viewModel.lastZoomFactor
+                viewModel.lastZoomFactor = value
+                viewModel.zoomFactor = min(range.max, max(range.min, viewModel.zoomFactor * delta))
+                viewModel.changeZoomFactor()
+            }
+            .onEnded { _ in
+                viewModel.lastZoomFactor = 1
+                viewModel.changeZoomFactor()
+            }
     }
 }
