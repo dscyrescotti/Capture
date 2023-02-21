@@ -38,6 +38,8 @@ extension CameraView {
                 }
                 .fontWeight(.bold)
             }
+        default:
+            EmptyView()
         }
         Button("Cancel", role: .cancel) {
             completion()

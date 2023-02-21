@@ -9,6 +9,7 @@ import Foundation
 
 enum PhotoLibraryError: LocalizedError {
     case photoLibraryDenied
+    case photoNotFound
 }
 
 extension PhotoLibraryError {
@@ -16,6 +17,8 @@ extension PhotoLibraryError {
         switch self {
         case .photoLibraryDenied:
             return "Photo Library Acess Denied"
+        case .photoNotFound:
+            return "Photo Not Found"
         }
     }
 
@@ -23,6 +26,8 @@ extension PhotoLibraryError {
         switch self {
         case .photoLibraryDenied:
             return "You need to allow the photo library access to save pictures you captured. Go to Settings and enable the photo library permission."
+        case .photoNotFound:
+            return "The photo is not found in the photo library."
         }
     }
 }

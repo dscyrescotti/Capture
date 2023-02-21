@@ -13,6 +13,7 @@
 		EC0CC26929A4D503002CCB0A /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC26829A4D503002CCB0A /* GalleryViewModel.swift */; };
 		EC0CC26B29A4D537002CCB0A /* GalleryDependency.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC26A29A4D537002CCB0A /* GalleryDependency.swift */; };
 		EC0CC26D29A4D579002CCB0A /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC26C29A4D579002CCB0A /* AppEnvironment.swift */; };
+		EC0CC27129A4E059002CCB0A /* PhotoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC27029A4E059002CCB0A /* PhotoThumbnail.swift */; };
 		EC13307E29A12596000E36DF /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC13307D29A12596000E36DF /* PhotoLibraryService.swift */; };
 		EC13308029A12B03000E36DF /* PhotoLibraryError.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC13307F29A12B03000E36DF /* PhotoLibraryError.swift */; };
 		EC5C775729A2123400775D17 /* FocusFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5C775629A2123400775D17 /* FocusFrame.swift */; };
@@ -36,6 +37,7 @@
 		EC0CC26829A4D503002CCB0A /* GalleryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryViewModel.swift; sourceTree = "<group>"; };
 		EC0CC26A29A4D537002CCB0A /* GalleryDependency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryDependency.swift; sourceTree = "<group>"; };
 		EC0CC26C29A4D579002CCB0A /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		EC0CC27029A4E059002CCB0A /* PhotoThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoThumbnail.swift; sourceTree = "<group>"; };
 		EC13307D29A12596000E36DF /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
 		EC13307F29A12B03000E36DF /* PhotoLibraryError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryError.swift; sourceTree = "<group>"; };
 		EC5C775629A2123400775D17 /* FocusFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusFrame.swift; sourceTree = "<group>"; };
@@ -70,6 +72,7 @@
 				EC0CC26629A4D4DA002CCB0A /* GalleryView.swift */,
 				EC0CC26829A4D503002CCB0A /* GalleryViewModel.swift */,
 				EC0CC26A29A4D537002CCB0A /* GalleryDependency.swift */,
+				EC0CC27029A4E059002CCB0A /* PhotoThumbnail.swift */,
 			);
 			path = Gallery;
 			sourceTree = "<group>";
@@ -271,6 +274,7 @@
 				ECC07C04299DFAA50043E5B1 /* CameraError.swift in Sources */,
 				ECC07C0A299E0F650043E5B1 /* CameraDependency.swift in Sources */,
 				EC0CC26D29A4D579002CCB0A /* AppEnvironment.swift in Sources */,
+				EC0CC27129A4E059002CCB0A /* PhotoThumbnail.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

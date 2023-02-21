@@ -12,7 +12,7 @@ struct CaptureApp: App {
     let environment: AppEnvironment = .live
     var body: some Scene {
         WindowGroup {
-            CameraView(dependency: CameraDependency(environment: environment))
+            CameraView(dependency: environment.cameraDependency)
         }
     }
 }

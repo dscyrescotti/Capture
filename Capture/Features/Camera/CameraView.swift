@@ -51,6 +51,9 @@ struct CameraView: View {
         }
         .onChange(of: scenePhase, perform: viewModel.onChangeScenePhase(to:))
         .preferredColorScheme(.dark)
+        .fullScreenCover(isPresented: $viewModel.presentsGallery) {
+            GalleryView(dependency: GalleryDependency.init(photoLibrary: viewModel.photoLibrary))
+        }
     }
 
     @ViewBuilder
@@ -108,8 +111,15 @@ struct CameraView: View {
                     .frame(height: 25)
             }
             HStack {
-                Color.clear
-                    .frame(width: 60, height: 60)
+                Button {
+                    viewModel.presentsGallery.toggle()
+                } label: {
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.title)
+                        .frame(width: 60, height: 60)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .clipShape(Circle())
+                }
                 Spacer()
                 Button {
                     viewModel.capturePhoto()

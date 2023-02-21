@@ -34,6 +34,8 @@ class CameraViewModel: ObservableObject {
     @Published var exposureMode: AVCaptureDevice.ExposureMode? = nil
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
 
+    @Published var presentsGallery: Bool = false
+
     var camera: CameraService { dependency.camera }
     var photoLibrary: PhotoLibraryService { dependency.photoLibrary }
 
