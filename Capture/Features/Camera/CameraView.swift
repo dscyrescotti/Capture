@@ -16,6 +16,24 @@ struct CameraView: View {
         self._viewModel = StateObject(wrappedValue: viewModel)
     }
 
+    private func magnificationGesture(size: CGSize) -> some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                let range = viewModel.camera.zoomFactorRange
+                guard viewModel.zoomFactor >= range.min && viewModel.zoomFactor <= range.max else {
+                    return
+                }
+                let delta = value / viewModel.lastZoomFactor
+                viewModel.lastZoomFactor = value
+                viewModel.zoomFactor = min(range.max, max(range.min, viewModel.zoomFactor * delta))
+                viewModel.changeZoomFactor()
+            }
+            .onEnded { _ in
+                viewModel.lastZoomFactor = 1
+                viewModel.changeZoomFactor()
+            }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             cameraTopActions
@@ -54,22 +72,25 @@ struct CameraView: View {
     @ViewBuilder
     var cameraPreview: some View {
         if viewModel.cameraPermission == .authorized {
-            CameraPreviewLayer(camera: viewModel.camera)
-                .onAppear {
-                    viewModel.hideCameraPreview(false)
-                    viewModel.camera.startSession()
-                }
-                .onDisappear {
-                    viewModel.hideCameraPreview(true)
-                    viewModel.camera.stopSession()
-                }
-                .blur(radius: viewModel.blursCameraPreview ? 5 : 0)
-                .overlay {
-                    if viewModel.hidesCameraPreview {
-                        Color(uiColor: .systemBackground)
-                            .transition(.opacity.animation(.default))
+            GeometryReader { proxy in
+                CameraPreviewLayer(camera: viewModel.camera)
+                    .onAppear {
+                        viewModel.hideCameraPreview(false)
+                        viewModel.camera.startSession()
                     }
-                }
+                    .onDisappear {
+                        viewModel.hideCameraPreview(true)
+                        viewModel.camera.stopSession()
+                    }
+                    .blur(radius: viewModel.blursCameraPreview ? 5 : 0)
+                    .overlay {
+                        if viewModel.hidesCameraPreview {
+                            Color(uiColor: .systemBackground)
+                                .transition(.opacity.animation(.default))
+                        }
+                    }
+                    .gesture(magnificationGesture(size: proxy.size))
+            }
         } else {
             Color.black
         }

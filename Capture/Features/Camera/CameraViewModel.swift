@@ -19,6 +19,8 @@ class CameraViewModel: ObservableObject {
     @Published var rearDeviceIndex: Int = 0
     @Published var cameraError: CameraError?
     @Published var frontDeviceIndex: Int = 0
+    @Published var zoomFactor: CGFloat = 1.0
+    @Published var lastZoomFactor: CGFloat = 1.0
     @Published var enablesLivePhoto: Bool = true
     @Published var cameraMode: CameraMode = .none
     @Published var hidesCameraPreview: Bool = true
@@ -60,6 +62,8 @@ class CameraViewModel: ObservableObject {
         self.isAvailableFlashLight = camera.isAvailableFlashLight
         self.focusMode = camera.captureDevice?.focusMode
         self.exposureMode = camera.captureDevice?.exposureMode
+        self.zoomFactor = camera.captureDevice?.videoZoomFactor ?? .zero
+        self.lastZoomFactor = 1.0
     }
 }
 
@@ -210,6 +214,18 @@ extension CameraViewModel {
                     pointOfInterest = point
                 }
                 try await camera.changePointOfInterest(to: point)
+            } catch {
+                await MainActor.run {
+                    cameraError = error as? CameraError ?? .unknownError
+                }
+            }
+        }
+    }
+
+    func changeZoomFactor() {
+        Task {
+            do {
+                try await camera.changeZoomFactor(to: zoomFactor)
             } catch {
                 await MainActor.run {
                     cameraError = error as? CameraError ?? .unknownError

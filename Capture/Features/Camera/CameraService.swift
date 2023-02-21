@@ -78,6 +78,11 @@ class CameraService: NSObject {
         guard let captureDevice else { return false }
         return captureDevice.isExposureModeSupported(exposureMode)
     }
+
+    var zoomFactorRange: (min: CGFloat, max: CGFloat) {
+        guard let captureDevice else { return (1, 1) }
+        return (captureDevice.minAvailableVideoZoomFactor, captureDevice.maxAvailableVideoZoomFactor)
+    }
 }
 
 // MARK: - Life Cycle
@@ -180,6 +185,25 @@ extension CameraService {
             }
         }
     }
+
+    func changeZoomFactor(to factor: CGFloat) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            sessionQueue.async { [unowned self] in
+                guard let captureDevice else {
+                    continuation.resume(throwing: CameraError.unknownError)
+                    return
+                }
+                do {
+                    try captureDevice.lockForConfiguration()
+                    captureDevice.ramp(toVideoZoomFactor: factor, withRate: 5)
+                    captureDevice.unlockForConfiguration()
+                    continuation.resume(returning: ())
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Configuration
@@ -222,6 +246,11 @@ extension CameraService {
     private func configureCameraInput(from devices: [AVCaptureDevice], for cameraMode: CameraMode, at index: Int = 0) throws -> CameraMode {
         guard index < devices.count else { throw CameraError.unknownError }
         captureDevice = devices[index]
+        if let captureDevice {
+            try captureDevice.lockForConfiguration()
+            captureDevice.videoZoomFactor = captureDevice.minAvailableVideoZoomFactor
+            captureDevice.unlockForConfiguration()
+        }
         guard let captureDevice else {
             throw CameraError.unknownError
         }
