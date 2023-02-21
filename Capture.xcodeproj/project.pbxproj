@@ -9,7 +9,10 @@
 /* Begin PBXBuildFile section */
 		EC0A9CE9299E39D20019EF31 /* CameraPreviewLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0A9CE8299E39D20019EF31 /* CameraPreviewLayer.swift */; };
 		EC0A9CEB299E3B580019EF31 /* CameraMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0A9CEA299E3B580019EF31 /* CameraMode.swift */; };
-		EC0A9CEE299E4DEF0019EF31 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = EC0A9CED299E4DEF0019EF31 /* AsyncAlgorithms */; };
+		EC0CC26729A4D4DA002CCB0A /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC26629A4D4DA002CCB0A /* GalleryView.swift */; };
+		EC0CC26929A4D503002CCB0A /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC26829A4D503002CCB0A /* GalleryViewModel.swift */; };
+		EC0CC26B29A4D537002CCB0A /* GalleryDependency.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC26A29A4D537002CCB0A /* GalleryDependency.swift */; };
+		EC0CC26D29A4D579002CCB0A /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0CC26C29A4D579002CCB0A /* AppEnvironment.swift */; };
 		EC13307E29A12596000E36DF /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC13307D29A12596000E36DF /* PhotoLibraryService.swift */; };
 		EC13308029A12B03000E36DF /* PhotoLibraryError.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC13307F29A12B03000E36DF /* PhotoLibraryError.swift */; };
 		EC5C775729A2123400775D17 /* FocusFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5C775629A2123400775D17 /* FocusFrame.swift */; };
@@ -29,6 +32,10 @@
 /* Begin PBXFileReference section */
 		EC0A9CE8299E39D20019EF31 /* CameraPreviewLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewLayer.swift; sourceTree = "<group>"; };
 		EC0A9CEA299E3B580019EF31 /* CameraMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraMode.swift; sourceTree = "<group>"; };
+		EC0CC26629A4D4DA002CCB0A /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
+		EC0CC26829A4D503002CCB0A /* GalleryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryViewModel.swift; sourceTree = "<group>"; };
+		EC0CC26A29A4D537002CCB0A /* GalleryDependency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryDependency.swift; sourceTree = "<group>"; };
+		EC0CC26C29A4D579002CCB0A /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		EC13307D29A12596000E36DF /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
 		EC13307F29A12B03000E36DF /* PhotoLibraryError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryError.swift; sourceTree = "<group>"; };
 		EC5C775629A2123400775D17 /* FocusFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusFrame.swift; sourceTree = "<group>"; };
@@ -51,13 +58,40 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC0A9CEE299E4DEF0019EF31 /* AsyncAlgorithms in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC0CC26529A4D488002CCB0A /* Gallery */ = {
+			isa = PBXGroup;
+			children = (
+				EC0CC26629A4D4DA002CCB0A /* GalleryView.swift */,
+				EC0CC26829A4D503002CCB0A /* GalleryViewModel.swift */,
+				EC0CC26A29A4D537002CCB0A /* GalleryDependency.swift */,
+			);
+			path = Gallery;
+			sourceTree = "<group>";
+		};
+		EC0CC26E29A4D731002CCB0A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				ECC07C07299E07DB0043E5B1 /* CameraService.swift */,
+				EC13307D29A12596000E36DF /* PhotoLibraryService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		EC0CC26F29A4D755002CCB0A /* Errors */ = {
+			isa = PBXGroup;
+			children = (
+				ECC07C03299DFAA50043E5B1 /* CameraError.swift */,
+				EC13307F29A12B03000E36DF /* PhotoLibraryError.swift */,
+			);
+			path = Errors;
+			sourceTree = "<group>";
+		};
 		ECC07BDE299DE1BF0043E5B1 = {
 			isa = PBXGroup;
 			children = (
@@ -77,7 +111,9 @@
 		ECC07BE9299DE1BF0043E5B1 /* Capture */ = {
 			isa = PBXGroup;
 			children = (
-				ECC07C0D299E18DB0043E5B1 /* Extension */,
+				EC0CC26F29A4D755002CCB0A /* Errors */,
+				EC0CC26E29A4D731002CCB0A /* Services */,
+				ECC07C0D299E18DB0043E5B1 /* Extensions */,
 				ECC07BF8299DE89F0043E5B1 /* App */,
 				ECC07BFA299DE8BD0043E5B1 /* Features */,
 				ECC07BF0299DE1C10043E5B1 /* Preview Content */,
@@ -98,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */,
+				EC0CC26C29A4D579002CCB0A /* AppEnvironment.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -106,15 +143,11 @@
 			isa = PBXGroup;
 			children = (
 				ECC07C09299E0F650043E5B1 /* CameraDependency.swift */,
-				ECC07C03299DFAA50043E5B1 /* CameraError.swift */,
 				EC0A9CEA299E3B580019EF31 /* CameraMode.swift */,
 				EC0A9CE8299E39D20019EF31 /* CameraPreviewLayer.swift */,
-				ECC07C07299E07DB0043E5B1 /* CameraService.swift */,
 				ECC07C01299DF2630043E5B1 /* CameraView.swift */,
 				ECC07C0B299E175B0043E5B1 /* CameraView+Alert.swift */,
 				ECC07C05299E05C30043E5B1 /* CameraViewModel.swift */,
-				EC13307D29A12596000E36DF /* PhotoLibraryService.swift */,
-				EC13307F29A12B03000E36DF /* PhotoLibraryError.swift */,
 				EC5C775629A2123400775D17 /* FocusFrame.swift */,
 			);
 			path = Camera;
@@ -123,6 +156,7 @@
 		ECC07BFA299DE8BD0043E5B1 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				EC0CC26529A4D488002CCB0A /* Gallery */,
 				ECC07BF9299DE8AE0043E5B1 /* Camera */,
 			);
 			path = Features;
@@ -136,13 +170,13 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		ECC07C0D299E18DB0043E5B1 /* Extension */ = {
+		ECC07C0D299E18DB0043E5B1 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
 				ECC07C0E299E18E70043E5B1 /* View++.swift */,
 				ECB3F525299FD32600BEB8A7 /* DeviceType++.swift */,
 			);
-			path = Extension;
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,7 +196,6 @@
 			);
 			name = Capture;
 			packageProductDependencies = (
-				EC0A9CED299E4DEF0019EF31 /* AsyncAlgorithms */,
 			);
 			productName = Capture;
 			productReference = ECC07BE7299DE1BF0043E5B1 /* Capture.app */;
@@ -193,7 +226,6 @@
 			);
 			mainGroup = ECC07BDE299DE1BF0043E5B1;
 			packageReferences = (
-				EC0A9CEC299E4DEF0019EF31 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
 			);
 			productRefGroup = ECC07BE8299DE1BF0043E5B1 /* Products */;
 			projectDirPath = "";
@@ -221,10 +253,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC0CC26B29A4D537002CCB0A /* GalleryDependency.swift in Sources */,
 				EC13307E29A12596000E36DF /* PhotoLibraryService.swift in Sources */,
 				EC0A9CE9299E39D20019EF31 /* CameraPreviewLayer.swift in Sources */,
 				ECC07C0F299E18E70043E5B1 /* View++.swift in Sources */,
 				EC13308029A12B03000E36DF /* PhotoLibraryError.swift in Sources */,
+				EC0CC26729A4D4DA002CCB0A /* GalleryView.swift in Sources */,
 				EC5C775729A2123400775D17 /* FocusFrame.swift in Sources */,
 				ECC07C0C299E175B0043E5B1 /* CameraView+Alert.swift in Sources */,
 				ECC07C02299DF2630043E5B1 /* CameraView.swift in Sources */,
@@ -233,8 +267,10 @@
 				EC0A9CEB299E3B580019EF31 /* CameraMode.swift in Sources */,
 				ECC07C06299E05C30043E5B1 /* CameraViewModel.swift in Sources */,
 				ECB3F526299FD32600BEB8A7 /* DeviceType++.swift in Sources */,
+				EC0CC26929A4D503002CCB0A /* GalleryViewModel.swift in Sources */,
 				ECC07C04299DFAA50043E5B1 /* CameraError.swift in Sources */,
 				ECC07C0A299E0F650043E5B1 /* CameraDependency.swift in Sources */,
+				EC0CC26D29A4D579002CCB0A /* AppEnvironment.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,25 +473,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		EC0A9CEC299E4DEF0019EF31 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-async-algorithms.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		EC0A9CED299E4DEF0019EF31 /* AsyncAlgorithms */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC0A9CEC299E4DEF0019EF31 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
-			productName = AsyncAlgorithms;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = ECC07BDF299DE1BF0043E5B1 /* Project object */;
 }

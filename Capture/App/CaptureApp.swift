@@ -9,9 +9,10 @@ import SwiftUI
 
 @main
 struct CaptureApp: App {
+    let environment: AppEnvironment = .live
     var body: some Scene {
         WindowGroup {
-            CameraView(dependency: .live)
+            CameraView(dependency: CameraDependency(environment: environment))
         }
     }
 }

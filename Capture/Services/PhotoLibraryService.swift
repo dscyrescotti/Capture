@@ -10,10 +10,24 @@ import Foundation
 
 class PhotoLibraryService: NSObject {
     let photoLibrary: PHPhotoLibrary
+    let imageCachingManager = PHCachingImageManager()
 
     override init() {
         self.photoLibrary = .shared()
         super.init()
+    }
+}
+
+// MARK: - Fetching
+extension PhotoLibraryService {
+    func fetchAllPhotos() async -> PHFetchResult<PHAsset> {
+        await withCheckedContinuation { (continuation: CheckedContinuation<PHFetchResult<PHAsset>, Never>) in
+            imageCachingManager.allowsCachingHighQualityImages = false
+            let fetchOptions = PHFetchOptions()
+            fetchOptions.includeHiddenAssets = false
+            fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            continuation.resume(returning: PHAsset.fetchAssets(with: .image, options: fetchOptions))
+        }
     }
 }
 

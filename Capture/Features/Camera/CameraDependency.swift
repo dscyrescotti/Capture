@@ -19,13 +19,3 @@ struct CameraDependency {
         self.photoLibrary = photoLibrary
     }
 }
-
-extension CameraDependency {
-    static var live: CameraDependency {
-        let photoLibrary = PhotoLibraryService()
-        return CameraDependency(
-            camera: CameraService(photoLibrary: photoLibrary),
-            photoLibrary: photoLibrary
-        )
-    }
-}
