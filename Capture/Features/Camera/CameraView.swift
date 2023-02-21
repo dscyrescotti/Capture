@@ -73,6 +73,15 @@ struct CameraView: View {
                                 .transition(.opacity.animation(.default))
                         }
                     }
+                    .overlay(alignment: .bottom) {
+                        Text("x\(viewModel.zoomFactor * 100 / viewModel.camera.zoomFactorRange.max, specifier: "%.1f")")
+                            .font(.headline.bold())
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 10)
+                            .background(.thinMaterial)
+                            .clipShape(Capsule())
+                            .padding(.bottom, 5)
+                    }
                     .gesture(magnificationGesture(size: proxy.size))
             }
         } else {
@@ -218,12 +227,13 @@ struct CameraView: View {
         MagnificationGesture()
             .onChanged { value in
                 let range = viewModel.camera.zoomFactorRange
-                guard viewModel.zoomFactor >= range.min && viewModel.zoomFactor <= range.max else {
+                let maxZoom = range.max * 5 / 100
+                guard viewModel.zoomFactor >= range.min && viewModel.zoomFactor <= maxZoom else {
                     return
                 }
                 let delta = value / viewModel.lastZoomFactor
                 viewModel.lastZoomFactor = value
-                viewModel.zoomFactor = min(range.max, max(range.min, viewModel.zoomFactor * delta))
+                viewModel.zoomFactor = min(maxZoom, max(range.min, viewModel.zoomFactor * delta))
                 viewModel.changeZoomFactor()
             }
             .onEnded { _ in
