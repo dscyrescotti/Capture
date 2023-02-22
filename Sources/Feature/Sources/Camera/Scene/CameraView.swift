@@ -74,7 +74,6 @@ public struct CameraView: View {
                         viewModel.hideCameraPreview(true)
                         viewModel.camera.stopSession()
                     }
-                    .blur(radius: viewModel.blursCameraPreview ? 5 : 0)
                     .overlay {
                         if viewModel.hidesCameraPreview {
                             Color(uiColor: .systemBackground)

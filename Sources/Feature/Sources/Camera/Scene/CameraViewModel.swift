@@ -27,7 +27,6 @@ class CameraViewModel: ObservableObject {
     @Published var enablesLivePhoto: Bool = true
     @Published var cameraMode: CameraMode = .none
     @Published var hidesCameraPreview: Bool = true
-    @Published var blursCameraPreview: Bool = false
     @Published var pointOfInterest: CGPoint = .zero
     @Published var isAvailableLivePhoto: Bool = false
     @Published var isAvailableFlashLight: Bool = false
@@ -66,23 +65,14 @@ extension CameraViewModel {
     }
 
     func switchCameraDevice(to index: Int, for cameraMode: CameraMode) {
-        withAnimation(.linear(duration: 0.2)) {
-            self.blursCameraPreview = true
-        }
         Task {
             do {
                 let cameraMode = try await camera.switchCameraDevice(to: index, for: cameraMode)
                 await MainActor.run {
                     updateState(cameraMode)
-                    withAnimation(.linear(duration: 0.2)) {
-                        self.blursCameraPreview = false
-                    }
                 }
             } catch {
                 await MainActor.run {
-                    withAnimation(.linear(duration: 0.2)) {
-                        self.blursCameraPreview = false
-                    }
                     self.cameraError = error as? CameraError ?? .unknownError
                 }
             }
@@ -239,9 +229,9 @@ extension CameraViewModel {
         case let .photo(uniqueId, photo):
             Task {
                 guard let photo, let image = UIImage(data: photo, scale: 1) else { return }
-                _ = await MainActor.run {
+                await MainActor.run {
                     withAnimation {
-                        photos.insert(CapturePhoto(id: uniqueId, image: image))
+                        _ = photos.insert(CapturePhoto(id: uniqueId, image: image))
                     }
                 }
             }
@@ -249,15 +239,19 @@ extension CameraViewModel {
             Task {
                 guard let photo = photos.first(where: { uniqueId == $0.id }) else { return }
                 try? await Task.sleep(for: .seconds(2))
-                _ = await MainActor.run {
+                await MainActor.run {
                     withAnimation {
-                        photos.remove(photo)
+                        _ = photos.remove(photo)
                     }
                 }
             }
-        case let .error(_, error):
+        case let .error(uniqueId, error):
             Task {
+                guard let photo = photos.first(where: { uniqueId == $0.id }) else { return }
                 await MainActor.run {
+                    withAnimation {
+                        _ = photos.remove(photo)
+                    }
                     cameraError = error as? CameraError ?? .unknownError
                 }
             }
