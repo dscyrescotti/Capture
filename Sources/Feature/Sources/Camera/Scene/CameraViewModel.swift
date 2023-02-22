@@ -17,6 +17,7 @@ class CameraViewModel: ObservableObject {
     var rearDevices: [String] = []
     var frontDevices: [String] = []
     var scenePhase: ScenePhase = .inactive
+    var captureCache: [Int64: CaptureData] = [:]
 
     @Published var rearDeviceIndex: Int = 0
     @Published var cameraError: CameraError?
@@ -226,14 +227,23 @@ extension CameraViewModel {
 
     private func handleCaptureEvent(_ event: CaptureEvent) {
         switch event {
+        case let .initial(uniqueId):
+            Task {
+                captureCache[uniqueId] = CaptureData(uniqueId: uniqueId)
+            }
         case let .photo(uniqueId, photo):
             Task {
+                captureCache[uniqueId]?.setPhoto(photo)
                 guard let photo, let image = UIImage(data: photo, scale: 1) else { return }
                 await MainActor.run {
                     withAnimation {
                         _ = photos.insert(CapturePhoto(id: uniqueId, image: image))
                     }
                 }
+            }
+        case let .livePhoto(uniqueId, url):
+            Task {
+                captureCache[uniqueId]?.setLivePhotoURL(url)
             }
         case let .end(uniqueId):
             Task {
@@ -245,8 +255,21 @@ extension CameraViewModel {
                     }
                 }
             }
+            Task {
+                if let captureData = captureCache[uniqueId], let photo = captureData.photo {
+                    do {
+                        try await photoLibrary.savePhoto(for: photo, withLivePhotoURL: captureData.livePhotoURL)
+                        captureCache[uniqueId] = nil
+                    } catch {
+                        await MainActor.run {
+                            photoLibraryError = error as? PhotoLibraryError ?? .unknownError
+                        }
+                    }
+                }
+            }
         case let .error(uniqueId, error):
             Task {
+                captureCache[uniqueId] = nil
                 guard let photo = photos.first(where: { uniqueId == $0.id }) else { return }
                 await MainActor.run {
                     withAnimation {
@@ -255,8 +278,6 @@ extension CameraViewModel {
                     cameraError = error as? CameraError ?? .unknownError
                 }
             }
-        default:
-            break
         }
     }
 }

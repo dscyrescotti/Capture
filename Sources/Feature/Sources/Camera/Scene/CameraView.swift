@@ -90,7 +90,7 @@ public struct CameraView: View {
                             .font(.headline.bold())
                             .padding(.vertical, 3)
                             .padding(.horizontal, 10)
-                            .background(.thinMaterial)
+                            .background(.ultraThinMaterial)
                             .clipShape(Capsule())
                             .padding(.bottom, 5)
                     }
@@ -258,7 +258,7 @@ public struct CameraView: View {
         }
         .clipped()
         .frame(width: 110, height: 110)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 5))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 5))
         .padding(15)
         .transition(.opacity)
     }

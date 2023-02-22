@@ -61,7 +61,6 @@ public class CameraService: NSObject {
     // MARK: - Capture
     lazy var captureQueue: DispatchQueue = DispatchQueue(label: "photo-capture-queue", qos: .userInteractive)
     public lazy var captureChannel =  AsyncChannel<CaptureEvent>()
-    var captureCache: [Int64: CaptureData] = [:]
 
     public override init() {
         self.captureSession = AVCaptureSession()
@@ -325,25 +324,9 @@ public extension CameraService {
 public extension CameraService {
     func triggerCaptureEvent(_ event: CaptureEvent) {
         captureQueue.async { [unowned self] in
-            updateCaptureCache(event)
             Task {
                 await captureChannel.send(event)
             }
-        }
-    }
-
-    private func updateCaptureCache(_ event: CaptureEvent) {
-        switch event {
-        case let .initial(uniqueId):
-            captureCache[uniqueId] = CaptureData(uniqueId: uniqueId)
-        case let .photo(uniqueId, photo):
-            captureCache[uniqueId]?.setPhoto(photo)
-        case let .livePhoto(uniqueId, url):
-            captureCache[uniqueId]?.setLivePhotoURL(url)
-        case let .end(uniqueId):
-            captureCache[uniqueId] = nil
-        case let .error(uniqueId, _):
-            captureCache[uniqueId] = nil
         }
     }
 }

@@ -9,14 +9,18 @@ import UIKit
 import Photos
 import Utility
 import Foundation
+import AsyncAlgorithms
 
 public class PhotoLibraryService: NSObject {
     let photoLibrary: PHPhotoLibrary
     let imageCachingManager = PHCachingImageManager()
 
+    lazy var libraryUpdateChannel = AsyncChannel<PHChange>()
+
     public override init() {
         self.photoLibrary = .shared()
         super.init()
+        self.photoLibrary.register(self)
     }
 }
 
@@ -69,14 +73,18 @@ public extension PhotoLibraryService {
         guard photoLibraryPermissionStatus == .authorized else {
             throw PhotoLibraryError.photoLibraryDenied
         }
-        try await photoLibrary.performChanges {
-            let createRequest = PHAssetCreationRequest.forAsset()
-            createRequest.addResource(with: .photo, data: photoData, options: nil)
-            if let url {
-                let options = PHAssetResourceCreationOptions()
-                options.shouldMoveFile = true
-                createRequest.addResource(with: .pairedVideo, fileURL: url, options: options)
+        do {
+            try await photoLibrary.performChanges {
+                let createRequest = PHAssetCreationRequest.forAsset()
+                createRequest.addResource(with: .photo, data: photoData, options: nil)
+                if let url {
+                    let options = PHAssetResourceCreationOptions()
+                    options.shouldMoveFile = true
+                    createRequest.addResource(with: .pairedVideo, fileURL: url, options: options)
+                }
             }
+        } catch {
+            throw PhotoLibraryError.photoSavingFailed
         }
     }
 }
@@ -89,5 +97,15 @@ public extension PhotoLibraryService {
 
     func requestPhotoLibraryPermission() async {
         await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+    }
+}
+
+// MARK: - Delegate
+extension PhotoLibraryService: PHPhotoLibraryChangeObserver {
+    public func photoLibraryDidChange(_ changeInstance: PHChange) {
+        print("[PhOtOlIbRaRy]: \(changeInstance.description)")
+        Task {
+            await libraryUpdateChannel.send(changeInstance)
+        }
     }
 }
