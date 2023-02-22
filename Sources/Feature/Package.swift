@@ -14,6 +14,10 @@ let package = Package(
         .library(
             name: "Gallery",
             targets: ["Gallery"]
+        ),
+        .library(
+            name: "Photo",
+            targets: ["Photo"]
         )
     ],
     dependencies: [
@@ -36,6 +40,13 @@ let package = Package(
                 .product(name: "Core", package: "Core"),
                 .product(name: "Routing", package: "Routing"),
                 .product(name: "Utility", package: "Utility")
+            ]
+        ),
+        .target(
+            name: "Photo",
+            dependencies: [
+                .product(name: "Core", package: "Core"),
+                .product(name: "Routing", package: "Routing")
             ]
         ),
         .testTarget(

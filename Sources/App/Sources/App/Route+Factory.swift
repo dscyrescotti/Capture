@@ -6,6 +6,7 @@
 //
 
 import Core
+import Photo
 import Camera
 import Gallery
 import Routing
@@ -15,6 +16,8 @@ extension Route: Factory {
     @ViewBuilder
     public func contentView() -> some View {
         switch self {
+        case let .photo(photo, assetId, fileName):
+            PhotoView(dependency: environment.photoDependency(photo: photo, assetId: assetId, fileName: fileName))
         case .camera:
             CameraView(dependency: environment.cameraDependency)
         case .gallery:

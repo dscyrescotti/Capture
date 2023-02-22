@@ -12,10 +12,16 @@ struct PhotoThumbnail: View {
 
     let assetId: String
     let loadImage: (String, CGSize) async -> UIImage?
+    let onTap: (UIImage?, String) -> Void
 
-    init(assetId: String, loadImage: @escaping (String, CGSize) async -> UIImage?) {
+    init(
+        assetId: String,
+        loadImage: @escaping (String, CGSize) async -> UIImage?,
+        onTap: @escaping (UIImage?, String) -> Void
+    ) {
         self.assetId = assetId
         self.loadImage = loadImage
+        self.onTap = onTap
     }
 
     var body: some View {
@@ -30,7 +36,6 @@ struct PhotoThumbnail: View {
                 } else {
                     Color.gray
                         .opacity(0.3)
-                    ProgressView()
                 }
             }
             .task {
@@ -40,7 +45,10 @@ struct PhotoThumbnail: View {
                 }
             }
             .onDisappear {
-                self.image = image
+                self.image = nil
+            }
+            .onTapGesture {
+                onTap(image, assetId)
             }
         }
     }

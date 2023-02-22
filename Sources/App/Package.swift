@@ -22,6 +22,7 @@ let package = Package(
             name: "App",
             dependencies: [
                 .product(name: "Core", package: "Core"),
+                .product(name: "Photo", package: "Feature"),
                 .product(name: "Camera", package: "Feature"),
                 .product(name: "Gallery", package: "Feature"),
                 .product(name: "Routing", package: "Routing")

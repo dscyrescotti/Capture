@@ -11,6 +11,7 @@ import Foundation
 public enum Route: Equatable, Identifiable, Hashable {
     case camera
     case gallery
+    case photo(photo: UIImage?, assetId: String, fileName: String)
 
     public var id: Int {
         hashValue

@@ -26,11 +26,16 @@ public struct GalleryView: View {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 5) {
                         ForEach(0..<viewModel.results.count, id: \.self) { index in
-                            PhotoThumbnail(assetId: viewModel.results[index].localIdentifier) { id, size in
+                            let asset = viewModel.results[index]
+                            PhotoThumbnail(assetId: asset.localIdentifier) { id, size in
                                 await viewModel.loadImage(for: id, targetSize: size)
+                            } onTap: { photo, assetId in
+                                let resource = PHAssetResource.assetResources(for: asset)
+                                let fileName = resource.first?.originalFilename ?? ""
+                                $coordinator.fullScreen(.photo(photo: photo, assetId: assetId, fileName: fileName))
                             }
                             .frame(height: (proxy.size.width - 5 * 3) / 3)
-                            .id(viewModel.results[index].localIdentifier)
+                            .id(asset.localIdentifier)
                         }
                     }
                 }
@@ -55,5 +60,6 @@ public struct GalleryView: View {
             await viewModel.bindLibraryUpdateChannel()
         }
         .preferredColorScheme(.dark)
+        .coordinated($coordinator)
     }
 }
