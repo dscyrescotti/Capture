@@ -56,6 +56,7 @@ public struct PhotoView: View {
                     .tint(.white)
                 }
             }
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .errorAlert($viewModel.photoLibraryError) { _, completion in
             Button("Cancel", role: .cancel) {
