@@ -14,11 +14,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		EC0F51F529A5DA1A00BC5E5E /* Utility */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Utility; path = Packages/Utility; sourceTree = "<group>"; };
-		EC0F51F629A5DA2500BC5E5E /* Routing */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Routing; path = Packages/Routing; sourceTree = "<group>"; };
-		EC0F51F729A5DA3300BC5E5E /* Core */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Core; path = Packages/Core; sourceTree = "<group>"; };
-		EC0F51F829A5DA6E00BC5E5E /* Feature */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Feature; path = Packages/Feature; sourceTree = "<group>"; };
-		EC0F51F929A5DA7700BC5E5E /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = App; path = Packages/App; sourceTree = "<group>"; };
+		EC0F51FC29A5DC0600BC5E5E /* Utility */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Utility; path = Sources/Utility; sourceTree = "<group>"; };
+		EC0F51FD29A5DC0F00BC5E5E /* Routing */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Routing; path = Sources/Routing; sourceTree = "<group>"; };
+		EC0F51FE29A5DC1A00BC5E5E /* Core */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Core; path = Sources/Core; sourceTree = "<group>"; };
+		EC0F51FF29A5DC2500BC5E5E /* Feature */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Feature; path = Sources/Feature; sourceTree = "<group>"; };
+		EC0F520029A5DC3000BC5E5E /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = App; path = Sources/App; sourceTree = "<group>"; };
 		ECC07BE7299DE1BF0043E5B1 /* Capture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Capture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureApp.swift; sourceTree = "<group>"; };
 		ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -47,11 +47,11 @@
 		EC0F51F429A5DA1A00BC5E5E /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				EC0F51F929A5DA7700BC5E5E /* App */,
-				EC0F51F729A5DA3300BC5E5E /* Core */,
-				EC0F51F829A5DA6E00BC5E5E /* Feature */,
-				EC0F51F629A5DA2500BC5E5E /* Routing */,
-				EC0F51F529A5DA1A00BC5E5E /* Utility */,
+				EC0F520029A5DC3000BC5E5E /* App */,
+				EC0F51FE29A5DC1A00BC5E5E /* Core */,
+				EC0F51FF29A5DC2500BC5E5E /* Feature */,
+				EC0F51FD29A5DC0F00BC5E5E /* Routing */,
+				EC0F51FC29A5DC0600BC5E5E /* Utility */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
