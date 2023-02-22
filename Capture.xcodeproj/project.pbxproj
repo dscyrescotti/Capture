@@ -7,18 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EC0F51F229A5D37500BC5E5E /* App in Frameworks */ = {isa = PBXBuildFile; productRef = EC0F51F129A5D37500BC5E5E /* App */; };
+		EC0F51FB29A5DA9600BC5E5E /* App in Frameworks */ = {isa = PBXBuildFile; productRef = EC0F51FA29A5DA9600BC5E5E /* App */; };
 		ECC07BEB299DE1BF0043E5B1 /* CaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */; };
 		ECC07BEF299DE1C10043E5B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */; };
 		ECC07BF2299DE1C10043E5B1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC07BF1299DE1C10043E5B1 /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		EC0F51DC29A5C05900BC5E5E /* Core */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Core; path = Packages/Core; sourceTree = "<group>"; };
-		EC0F51DD29A5C1EF00BC5E5E /* Utility */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Utility; path = Packages/Utility; sourceTree = "<group>"; };
-		EC0F51DE29A5C4BF00BC5E5E /* Feature */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Feature; path = Packages/Feature; sourceTree = "<group>"; };
-		EC0F51DF29A5CA8700BC5E5E /* Routing */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Routing; path = Packages/Routing; sourceTree = "<group>"; };
-		EC0F51EF29A5CDEB00BC5E5E /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = App; path = Packages/App; sourceTree = "<group>"; };
+		EC0F51F529A5DA1A00BC5E5E /* Utility */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Utility; path = Packages/Utility; sourceTree = "<group>"; };
+		EC0F51F629A5DA2500BC5E5E /* Routing */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Routing; path = Packages/Routing; sourceTree = "<group>"; };
+		EC0F51F729A5DA3300BC5E5E /* Core */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Core; path = Packages/Core; sourceTree = "<group>"; };
+		EC0F51F829A5DA6E00BC5E5E /* Feature */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Feature; path = Packages/Feature; sourceTree = "<group>"; };
+		EC0F51F929A5DA7700BC5E5E /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = App; path = Packages/App; sourceTree = "<group>"; };
 		ECC07BE7299DE1BF0043E5B1 /* Capture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Capture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureApp.swift; sourceTree = "<group>"; };
 		ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -30,7 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC0F51F229A5D37500BC5E5E /* App in Frameworks */,
+				EC0F51FB29A5DA9600BC5E5E /* App in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,14 +44,22 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		EC0F51F429A5DA1A00BC5E5E /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				EC0F51F929A5DA7700BC5E5E /* App */,
+				EC0F51F729A5DA3300BC5E5E /* Core */,
+				EC0F51F829A5DA6E00BC5E5E /* Feature */,
+				EC0F51F629A5DA2500BC5E5E /* Routing */,
+				EC0F51F529A5DA1A00BC5E5E /* Utility */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
 		ECC07BDE299DE1BF0043E5B1 = {
 			isa = PBXGroup;
 			children = (
-				EC0F51EF29A5CDEB00BC5E5E /* App */,
-				EC0F51DF29A5CA8700BC5E5E /* Routing */,
-				EC0F51DE29A5C4BF00BC5E5E /* Feature */,
-				EC0F51DD29A5C1EF00BC5E5E /* Utility */,
-				EC0F51DC29A5C05900BC5E5E /* Core */,
+				EC0F51F429A5DA1A00BC5E5E /* Packages */,
 				ECC07BE9299DE1BF0043E5B1 /* Capture */,
 				ECC07BE8299DE1BF0043E5B1 /* Products */,
 				EC0F51F029A5D37500BC5E5E /* Frameworks */,
@@ -117,7 +125,7 @@
 			);
 			name = Capture;
 			packageProductDependencies = (
-				EC0F51F129A5D37500BC5E5E /* App */,
+				EC0F51FA29A5DA9600BC5E5E /* App */,
 			);
 			productName = Capture;
 			productReference = ECC07BE7299DE1BF0043E5B1 /* Capture.app */;
@@ -386,7 +394,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		EC0F51F129A5D37500BC5E5E /* App */ = {
+		EC0F51FA29A5DA9600BC5E5E /* App */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = App;
 		};
