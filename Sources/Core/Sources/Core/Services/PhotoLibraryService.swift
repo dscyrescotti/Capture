@@ -15,7 +15,7 @@ public class PhotoLibraryService: NSObject {
     let photoLibrary: PHPhotoLibrary
     let imageCachingManager = PHCachingImageManager()
 
-    lazy var libraryUpdateChannel = AsyncChannel<PHChange>()
+    public lazy var libraryUpdateChannel = AsyncChannel<PHChange>()
 
     public override init() {
         self.photoLibrary = .shared()
@@ -103,7 +103,6 @@ public extension PhotoLibraryService {
 // MARK: - Delegate
 extension PhotoLibraryService: PHPhotoLibraryChangeObserver {
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
-        print("[PhOtOlIbRaRy]: \(changeInstance.description)")
         Task {
             await libraryUpdateChannel.send(changeInstance)
         }

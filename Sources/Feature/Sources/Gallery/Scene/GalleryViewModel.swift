@@ -24,6 +24,22 @@ class GalleryViewModel: ObservableObject {
     }
 }
 
+// MARK: - Library Update
+extension GalleryViewModel {
+    func bindLibraryUpdateChannel() async {
+        for await changeInstance in photoLibrary.libraryUpdateChannel {
+            if let changes = changeInstance.changeDetails(for: results) {
+                await MainActor.run {
+                    withAnimation {
+                        results = changes.fetchResultAfterChanges
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Fetching
 extension GalleryViewModel {
     func loadImage(for assetId: String, targetSize: CGSize) async -> UIImage? {
         try? await dependency.photoLibrary.loadImage(for: assetId, targetSize: targetSize)

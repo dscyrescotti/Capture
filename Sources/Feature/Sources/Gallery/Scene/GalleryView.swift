@@ -30,6 +30,7 @@ public struct GalleryView: View {
                                 await viewModel.loadImage(for: id, targetSize: size)
                             }
                             .frame(height: (proxy.size.width - 5 * 3) / 3)
+                            .id(viewModel.results[index].localIdentifier)
                         }
                     }
                 }
@@ -49,6 +50,9 @@ public struct GalleryView: View {
         }
         .task {
             await viewModel.loadAllPhotos()
+        }
+        .task {
+            await viewModel.bindLibraryUpdateChannel()
         }
         .preferredColorScheme(.dark)
     }
