@@ -7,20 +7,21 @@
 
 import UIKit
 import Photos
+import Utility
 import Foundation
 
-class PhotoLibraryService: NSObject {
+public class PhotoLibraryService: NSObject {
     let photoLibrary: PHPhotoLibrary
     let imageCachingManager = PHCachingImageManager()
 
-    override init() {
+    public override init() {
         self.photoLibrary = .shared()
         super.init()
     }
 }
 
 // MARK: - Fetching
-extension PhotoLibraryService {
+public extension PhotoLibraryService {
     func fetchAllPhotos() async -> PHFetchResult<PHAsset> {
         await withCheckedContinuation { (continuation: CheckedContinuation<PHFetchResult<PHAsset>, Never>) in
             imageCachingManager.allowsCachingHighQualityImages = false
@@ -63,7 +64,7 @@ extension PhotoLibraryService {
 }
 
 // MARK: - Saving
-extension PhotoLibraryService {
+public extension PhotoLibraryService {
     func savePhoto(for photoData: Data, withLivePhotoURL url: URL? = nil) async throws {
         guard photoLibraryPermissionStatus == .authorized else {
             throw PhotoLibraryError.photoLibraryDenied
@@ -81,7 +82,7 @@ extension PhotoLibraryService {
 }
 
 // MARK: - Permission
-extension PhotoLibraryService {
+public extension PhotoLibraryService {
     var photoLibraryPermissionStatus: PHAuthorizationStatus {
         PHPhotoLibrary.authorizationStatus(for: .readWrite)
     }

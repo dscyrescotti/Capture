@@ -5,18 +5,21 @@
 //  Created by Aye Chan on 2/16/23.
 //
 
+import Core
+import Routing
 import SwiftUI
 
-struct CameraView: View {
+public struct CameraView: View {
+    @Coordinator var coordinator
     @Environment(\.scenePhase) var scenePhase
     @StateObject var viewModel: CameraViewModel
 
-    init(dependency: CameraDependency) {
+    public init(dependency: CameraDependency) {
         let viewModel = CameraViewModel(dependency: dependency)
         self._viewModel = StateObject(wrappedValue: viewModel)
     }
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             cameraTopActions
             GeometryReader { proxy in
@@ -51,9 +54,7 @@ struct CameraView: View {
         }
         .onChange(of: scenePhase, perform: viewModel.onChangeScenePhase(to:))
         .preferredColorScheme(.dark)
-        .fullScreenCover(isPresented: $viewModel.presentsGallery) {
-            GalleryView(dependency: GalleryDependency.init(photoLibrary: viewModel.photoLibrary))
-        }
+        .coordinated($coordinator)
     }
 
     @ViewBuilder
@@ -112,7 +113,7 @@ struct CameraView: View {
             }
             HStack {
                 Button {
-                    viewModel.presentsGallery.toggle()
+                    $coordinator.fullScreen(.gallery)
                 } label: {
                     Image(systemName: "photo.on.rectangle.angled")
                         .font(.title)

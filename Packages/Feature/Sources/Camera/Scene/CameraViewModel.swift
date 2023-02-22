@@ -5,7 +5,9 @@
 //  Created by Aye Chan on 2/16/23.
 //
 
+import Core
 import SwiftUI
+import Utility
 import Foundation
 import AVFoundation
 
@@ -33,8 +35,6 @@ class CameraViewModel: ObservableObject {
     @Published var focusMode: AVCaptureDevice.FocusMode? = nil
     @Published var exposureMode: AVCaptureDevice.ExposureMode? = nil
     @Published var cameraPermission: AVAuthorizationStatus = .notDetermined
-
-    @Published var presentsGallery: Bool = false
 
     var camera: CameraService { dependency.camera }
     var photoLibrary: PhotoLibraryService { dependency.photoLibrary }

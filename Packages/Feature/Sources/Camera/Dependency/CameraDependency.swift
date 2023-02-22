@@ -5,13 +5,14 @@
 //  Created by Aye Chan on 2/16/23.
 //
 
+import Core
 import Foundation
 
-struct CameraDependency {
+public struct CameraDependency {
     let camera: CameraService
     let photoLibrary: PhotoLibraryService
 
-    init(
+    public init(
         camera: CameraService,
         photoLibrary: PhotoLibraryService
     ) {

@@ -5,21 +5,22 @@
 //  Created by Aye Chan on 2/16/23.
 //
 
+import Photos
 import SwiftUI
+import Utility
 import Foundation
 import AVFoundation
-import Photos
 
-class CameraService: NSObject {
+public class CameraService: NSObject {
     let photoLibrary: PhotoLibraryService
 
     // MARK: - Session
-    let captureSession: AVCaptureSession
+    public let captureSession: AVCaptureSession
     var sessionQueue: DispatchQueue = DispatchQueue(label: "capture-session", qos: .userInteractive, attributes: .concurrent)
     var isConfigured: Bool = false
 
     // MARK: - Devices
-    private lazy var captureDevices: [AVCaptureDevice] = {
+    lazy var captureDevices: [AVCaptureDevice] = {
         AVCaptureDevice.DiscoverySession(
             deviceTypes: [
                 .builtInTrueDepthCamera,
@@ -35,21 +36,21 @@ class CameraService: NSObject {
             position: .unspecified
         ).devices
     }()
-    lazy var frontCaptureDevices: [AVCaptureDevice] = {
+    public lazy var frontCaptureDevices: [AVCaptureDevice] = {
         captureDevices.filter { $0.position == .front }
     }()
-    lazy var rearCaptureDevices: [AVCaptureDevice] = {
+    public lazy var rearCaptureDevices: [AVCaptureDevice] = {
         captureDevices.filter { $0.position == .back }
     }()
-    var captureDevice: AVCaptureDevice?
-    var isAvailableFlashLight: Bool { captureDevice?.isFlashAvailable ?? false }
+    public var captureDevice: AVCaptureDevice?
+    public var isAvailableFlashLight: Bool { captureDevice?.isFlashAvailable ?? false }
 
     // MARK: - Input
     var captureInput: AVCaptureInput?
 
     // MARK: - Output
     var captureOutput: AVCaptureOutput?
-    var isAvailableLivePhoto: Bool {
+    public var isAvailableLivePhoto: Bool {
         guard let captureOutput = captureOutput as? AVCapturePhotoOutput, captureOutput.availablePhotoCodecTypes.contains(.hevc) else {
             return false
         }
@@ -57,36 +58,36 @@ class CameraService: NSObject {
     }
 
     // MARK: - Preview
-    let cameraPreviewLayer: AVCaptureVideoPreviewLayer
+    public let cameraPreviewLayer: AVCaptureVideoPreviewLayer
 
     // MARK: - Image
     var photoImageData: Data?
 
-    init(photoLibrary: PhotoLibraryService) {
+    public init(photoLibrary: PhotoLibraryService) {
         self.photoLibrary = photoLibrary
         self.captureSession = AVCaptureSession()
         self.cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         super.init()
     }
 
-    func isFocusModeSupported(_ focusMode: AVCaptureDevice.FocusMode) -> Bool {
+    public func isFocusModeSupported(_ focusMode: AVCaptureDevice.FocusMode) -> Bool {
         guard let captureDevice else { return false }
         return captureDevice.isFocusModeSupported(focusMode)
     }
 
-    func isExposureModeSupported(_ exposureMode: AVCaptureDevice.ExposureMode) -> Bool {
+    public func isExposureModeSupported(_ exposureMode: AVCaptureDevice.ExposureMode) -> Bool {
         guard let captureDevice else { return false }
         return captureDevice.isExposureModeSupported(exposureMode)
     }
 
-    var zoomFactorRange: (min: CGFloat, max: CGFloat) {
+    public var zoomFactorRange: (min: CGFloat, max: CGFloat) {
         guard let captureDevice else { return (1, 1) }
         return (captureDevice.minAvailableVideoZoomFactor, captureDevice.maxAvailableVideoZoomFactor)
     }
 }
 
 // MARK: - Life Cycle
-extension CameraService {
+public extension CameraService {
     func startSession() {
         guard isConfigured && !captureSession.isRunning else { return }
         sessionQueue.async { [unowned self] in
@@ -103,7 +104,7 @@ extension CameraService {
 }
 
 // MARK: - Actions
-extension CameraService {
+public extension CameraService {
     func capturePhoto(enablesLivePhoto: Bool = true, flashMode: AVCaptureDevice.FlashMode) {
         guard let captureOutput = captureOutput as? AVCapturePhotoOutput else { return }
         let captureSettings: AVCapturePhotoSettings
@@ -116,6 +117,34 @@ extension CameraService {
         }
         captureSettings.flashMode = flashMode
         captureOutput.capturePhoto(with: captureSettings, delegate: self)
+    }
+
+    func switchCameraDevice(to index: Int, for captureMode: CameraMode) async throws -> CameraMode {
+        try await withCheckedThrowingContinuation {  [unowned self] (continuation: CheckedContinuation<CameraMode, Error>) in
+            sessionQueue.async { [unowned self] in
+                var cameraMode: CameraMode = .none
+                do {
+                    switch captureMode {
+                    case .front:
+                        cameraMode = try configureCameraInput(from: frontCaptureDevices, for: captureMode, at: index)
+                    case .rear:
+                        cameraMode = try configureCameraInput(from: rearCaptureDevices, for: captureMode, at: index)
+                    case .none:
+                        cameraMode = .none
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+                if let captureInput {
+                    updateConfiguration { [unowned self] in
+                        captureSession.beginConfiguration()
+                            captureSession.addInput(captureInput)
+                        captureSession.commitConfiguration()
+                    }
+                }
+                continuation.resume(returning: cameraMode)
+            }
+        }
     }
 
     func switchFocusMode(to focusMode: AVCaptureDevice.FocusMode) async throws {
@@ -207,7 +236,7 @@ extension CameraService {
 }
 
 // MARK: - Configuration
-extension CameraService {
+public extension CameraService {
     func configureSession() async throws -> CameraMode {
         try await withCheckedThrowingContinuation { [unowned self] (continuation: CheckedContinuation<CameraMode, Error>) in
             sessionQueue.async { [unowned self] in
@@ -285,37 +314,6 @@ extension CameraService {
         }
         self.captureOutput = captureOutput
     }
-}
-
-// MARK: - Camera Switching
-extension CameraService {
-    func switchCameraDevice(to index: Int, for captureMode: CameraMode) async throws -> CameraMode {
-        try await withCheckedThrowingContinuation {  [unowned self] (continuation: CheckedContinuation<CameraMode, Error>) in
-            sessionQueue.async { [unowned self] in
-                var cameraMode: CameraMode = .none
-                do {
-                    switch captureMode {
-                    case .front:
-                        cameraMode = try configureCameraInput(from: frontCaptureDevices, for: captureMode, at: index)
-                    case .rear:
-                        cameraMode = try configureCameraInput(from: rearCaptureDevices, for: captureMode, at: index)
-                    case .none:
-                        cameraMode = .none
-                    }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-                if let captureInput {
-                    updateConfiguration { [unowned self] in
-                        captureSession.beginConfiguration()
-                            captureSession.addInput(captureInput)
-                        captureSession.commitConfiguration()
-                    }
-                }
-                continuation.resume(returning: cameraMode)
-            }
-        }
-    }
 
     private func updateConfiguration(_ execute: @escaping () -> Void) {
         isConfigured = false
@@ -325,7 +323,7 @@ extension CameraService {
 }
 
 // MARK: - Permission
-extension CameraService {
+public extension CameraService {
     var cameraPermissionStatus: AVAuthorizationStatus {
         AVCaptureDevice.authorizationStatus(for: .video)
     }
@@ -344,11 +342,11 @@ extension CameraService {
 
 // MARK: - AVCapturePhotoCaptureDelegate
 extension CameraService: AVCapturePhotoCaptureDelegate {
-    func photoOutput(_ output: AVCapturePhotoOutput, willBeginCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
+    public func photoOutput(_ output: AVCapturePhotoOutput, willBeginCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
         print("[Capture]: will begin processing photo - \(resolvedSettings.uniqueID)")
     }
 
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         print("[Capture]: finished processing photo - \(photo.resolvedSettings.uniqueID)")
         if let error {
             print("[ERROR]: \(error.localizedDescription)")
@@ -357,7 +355,7 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
         handleCapturePhoto(photo)
     }
 
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingLivePhotoToMovieFileAt outputFileURL: URL, duration: CMTime, photoDisplayTime: CMTime, resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
+    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingLivePhotoToMovieFileAt outputFileURL: URL, duration: CMTime, photoDisplayTime: CMTime, resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         print("[Capture]: finished processing live photo - \(resolvedSettings.uniqueID)")
         if let error {
             print("[Error]: \(error.localizedDescription)")
@@ -377,7 +375,7 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
         }
     }
 
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
+    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         print("[Capture]: finished capturing - \(resolvedSettings.uniqueID)")
         photoImageData = nil
     }

@@ -7,12 +7,12 @@
 
 import Foundation
 
-enum CameraMode {
+public enum CameraMode {
     case front
     case rear
     case none
 
-    var opposite: CameraMode {
+    public var opposite: CameraMode {
         switch self {
         case .front:
             return .rear

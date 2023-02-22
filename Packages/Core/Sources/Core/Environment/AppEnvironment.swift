@@ -7,11 +7,11 @@
 
 import Foundation
 
-class AppEnvironment {
-    let camera: CameraService
-    let photoLibrary: PhotoLibraryService
+public class AppEnvironment {
+    public let camera: CameraService
+    public let photoLibrary: PhotoLibraryService
 
-    init(
+    public init(
         camera: CameraService,
         photoLibrary: PhotoLibraryService
     ) {
@@ -20,12 +20,7 @@ class AppEnvironment {
     }
 }
 
-extension AppEnvironment {
-    var cameraDependency: CameraDependency { CameraDependency(camera: camera, photoLibrary: photoLibrary) }
-    var galleryDependency: GalleryDependency { GalleryDependency(photoLibrary: photoLibrary) }
-}
-
-extension AppEnvironment {
+public extension AppEnvironment {
     static var live: AppEnvironment {
         let photoLibrary = PhotoLibraryService()
         return AppEnvironment(
