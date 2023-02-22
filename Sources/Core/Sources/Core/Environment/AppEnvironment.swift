@@ -22,10 +22,9 @@ public class AppEnvironment {
 
 public extension AppEnvironment {
     static var live: AppEnvironment {
-        let photoLibrary = PhotoLibraryService()
         return AppEnvironment(
-            camera: CameraService(photoLibrary: photoLibrary),
-            photoLibrary: photoLibrary
+            camera: CameraService(),
+            photoLibrary: PhotoLibraryService()
         )
     }
 }

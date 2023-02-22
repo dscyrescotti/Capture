@@ -8,6 +8,7 @@
 import Core
 import Routing
 import SwiftUI
+import Utility
 
 public struct CameraView: View {
     @Coordinator var coordinator
@@ -49,6 +50,9 @@ public struct CameraView: View {
             await viewModel.checkPhotoLibraryPermission()
             await viewModel.checkCameraPermission()
         }
+        .task {
+            await viewModel.bindCaptureChannel()
+        }
         .errorAlert($viewModel.cameraError) { error, completion in
             cameraAlertActions(for: error, completion: completion)
         }
@@ -75,6 +79,11 @@ public struct CameraView: View {
                         if viewModel.hidesCameraPreview {
                             Color(uiColor: .systemBackground)
                                 .transition(.opacity.animation(.default))
+                        }
+                    }
+                    .overlay(alignment: .bottomLeading) {
+                        if !viewModel.photos.isEmpty {
+                            photoPreviewStack
                         }
                     }
                     .overlay(alignment: .bottom) {
@@ -232,6 +241,27 @@ public struct CameraView: View {
         .padding(.all, 15)
         .background(.black.opacity(0.7), ignoresSafeAreaEdges: .top)
         .font(.title2)
+    }
+
+    @ViewBuilder
+    var photoPreviewStack: some View {
+        ZStack {
+            ForEach(viewModel.photos.sorted(by: <)) { photo in
+                if let image = photo.image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 100, height: 100)
+                        .clipped()
+                        .transition(.move(edge: .bottom))
+                }
+            }
+        }
+        .clipped()
+        .frame(width: 110, height: 110)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 5))
+        .padding(15)
+        .transition(.opacity)
     }
 
     private func magnificationGesture(size: CGSize) -> some Gesture {

@@ -13,13 +13,15 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../Utility")
+        .package(path: "../Utility"),
+        .package(url: "https://github.com/apple/swift-async-algorithms.git", .upToNextMajor(from: "0.1.0"))
     ],
     targets: [
         .target(
             name: "Core",
             dependencies: [
-                .product(name: "Utility", package: "Utility")
+                .product(name: "Utility", package: "Utility"),
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
             ]
         ),
         .testTarget(

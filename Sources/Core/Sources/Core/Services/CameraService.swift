@@ -5,18 +5,16 @@
 //  Created by Aye Chan on 2/16/23.
 //
 
-import Photos
 import SwiftUI
 import Utility
 import Foundation
 import AVFoundation
+import AsyncAlgorithms
 
 public class CameraService: NSObject {
-    let photoLibrary: PhotoLibraryService
-
     // MARK: - Session
     public let captureSession: AVCaptureSession
-    var sessionQueue: DispatchQueue = DispatchQueue(label: "capture-session", qos: .userInteractive, attributes: .concurrent)
+    var sessionQueue: DispatchQueue = DispatchQueue(label: "capture-session-queue", qos: .userInteractive, attributes: .concurrent)
     var isConfigured: Bool = false
 
     // MARK: - Devices
@@ -60,11 +58,12 @@ public class CameraService: NSObject {
     // MARK: - Preview
     public let cameraPreviewLayer: AVCaptureVideoPreviewLayer
 
-    // MARK: - Image
-    var photoImageData: Data?
+    // MARK: - Capture
+    lazy var captureQueue: DispatchQueue = DispatchQueue(label: "photo-capture-queue", qos: .userInteractive)
+    public lazy var captureChannel =  AsyncChannel<CaptureEvent>()
+    var captureCache: [Int64: CaptureData] = [:]
 
-    public init(photoLibrary: PhotoLibraryService) {
-        self.photoLibrary = photoLibrary
+    public override init() {
         self.captureSession = AVCaptureSession()
         self.cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         super.init()
@@ -322,6 +321,33 @@ public extension CameraService {
     }
 }
 
+// MARK: - Capture Event
+public extension CameraService {
+    func triggerCaptureEvent(_ event: CaptureEvent) {
+        captureQueue.async { [unowned self] in
+            updateCaptureCache(event)
+            Task {
+                await captureChannel.send(event)
+            }
+        }
+    }
+
+    private func updateCaptureCache(_ event: CaptureEvent) {
+        switch event {
+        case let .initial(uniqueId):
+            captureCache[uniqueId] = CaptureData(uniqueId: uniqueId)
+        case let .photo(uniqueId, photo):
+            captureCache[uniqueId]?.setPhoto(photo)
+        case let .livePhoto(uniqueId, url):
+            captureCache[uniqueId]?.setLivePhotoURL(url)
+        case let .end(uniqueId):
+            captureCache[uniqueId] = nil
+        case let .error(uniqueId, _):
+            captureCache[uniqueId] = nil
+        }
+    }
+}
+
 // MARK: - Permission
 public extension CameraService {
     var cameraPermissionStatus: AVAuthorizationStatus {
@@ -333,50 +359,32 @@ public extension CameraService {
     }
 }
 
-// MARK: - Photo
-extension CameraService {
-    func handleCapturePhoto(_ photo: AVCapturePhoto) {
-        self.photoImageData = photo.fileDataRepresentation()
-    }
-}
-
 // MARK: - AVCapturePhotoCaptureDelegate
 extension CameraService: AVCapturePhotoCaptureDelegate {
     public func photoOutput(_ output: AVCapturePhotoOutput, willBeginCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
-        print("[Capture]: will begin processing photo - \(resolvedSettings.uniqueID)")
+        triggerCaptureEvent(.initial(resolvedSettings.uniqueID))
     }
 
     public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        print("[Capture]: finished processing photo - \(photo.resolvedSettings.uniqueID)")
+        let uniqueID = photo.resolvedSettings.uniqueID
         if let error {
-            print("[ERROR]: \(error.localizedDescription)")
+            triggerCaptureEvent(.error(uniqueID, error))
             return
         }
-        handleCapturePhoto(photo)
+        let photoData = photo.fileDataRepresentation()
+        triggerCaptureEvent(.photo(uniqueID, photoData))
     }
 
     public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingLivePhotoToMovieFileAt outputFileURL: URL, duration: CMTime, photoDisplayTime: CMTime, resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
-        print("[Capture]: finished processing live photo - \(resolvedSettings.uniqueID)")
+        let uniqueID = resolvedSettings.uniqueID
         if let error {
-            print("[Error]: \(error.localizedDescription)")
+            triggerCaptureEvent(.error(uniqueID, error))
             return
         }
-        guard let photoImageData else {
-            return
-        }
-        print("[URL]: \(outputFileURL.absoluteString)")
-        Task {
-            do {
-                try await photoLibrary.savePhoto(for: photoImageData, withLivePhotoURL: outputFileURL)
-            } catch {
-                guard let error = error as? PHPhotosError else { return }
-                print("[Error]: \(error.localizedDescription), \(error.errorUserInfo)")
-            }
-        }
+        triggerCaptureEvent(.livePhoto(uniqueID, outputFileURL))
     }
 
     public func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
-        print("[Capture]: finished capturing - \(resolvedSettings.uniqueID)")
-        photoImageData = nil
+        triggerCaptureEvent(.end(resolvedSettings.uniqueID))
     }
 }

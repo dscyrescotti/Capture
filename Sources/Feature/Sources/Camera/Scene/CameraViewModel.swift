@@ -22,6 +22,7 @@ class CameraViewModel: ObservableObject {
     @Published var cameraError: CameraError?
     @Published var frontDeviceIndex: Int = 0
     @Published var zoomFactor: CGFloat = 1.0
+    @Published var photos: Set<CapturePhoto> = []
     @Published var lastZoomFactor: CGFloat = 1.0
     @Published var enablesLivePhoto: Bool = true
     @Published var cameraMode: CameraMode = .none
@@ -43,32 +44,6 @@ class CameraViewModel: ObservableObject {
         self.dependency = dependency
         self.rearDevices = camera.rearCaptureDevices.map(\.deviceType.deviceName)
         self.frontDevices = camera.frontCaptureDevices.map(\.deviceType.deviceName)
-    }
-
-    func onChangeScenePhase(to scenePhase: ScenePhase) {
-        onChangeScenePhaseForCamera(to: scenePhase)
-        onChangeScenePhaseForPhotoLibrary(to: scenePhase)
-        self.scenePhase = scenePhase
-    }
-
-    func hideCameraPreview(_ value: Bool) {
-        withAnimation {
-            hidesCameraPreview = value
-        }
-    }
-
-    @MainActor
-    func updateState(_ cameraMode: CameraMode) {
-        withAnimation {
-            self.pointOfInterest = .zero
-        }
-        self.cameraMode = cameraMode
-        self.isAvailableLivePhoto = camera.isAvailableLivePhoto
-        self.isAvailableFlashLight = camera.isAvailableFlashLight
-        self.focusMode = camera.captureDevice?.focusMode
-        self.exposureMode = camera.captureDevice?.exposureMode
-        self.zoomFactor = camera.captureDevice?.videoZoomFactor ?? .zero
-        self.lastZoomFactor = 1.0
     }
 }
 
@@ -251,8 +226,78 @@ extension CameraViewModel {
     }
 }
 
+// MARK: - Capture Events
+extension CameraViewModel {
+    func bindCaptureChannel() async {
+        for await event in camera.captureChannel {
+            handleCaptureEvent(event)
+        }
+    }
+
+    private func handleCaptureEvent(_ event: CaptureEvent) {
+        switch event {
+        case let .photo(uniqueId, photo):
+            Task {
+                guard let photo, let image = UIImage(data: photo, scale: 1) else { return }
+                _ = await MainActor.run {
+                    withAnimation {
+                        photos.insert(CapturePhoto(id: uniqueId, image: image))
+                    }
+                }
+            }
+        case let .end(uniqueId):
+            Task {
+                guard let photo = photos.first(where: { uniqueId == $0.id }) else { return }
+                try? await Task.sleep(for: .seconds(2))
+                _ = await MainActor.run {
+                    withAnimation {
+                        photos.remove(photo)
+                    }
+                }
+            }
+        case let .error(_, error):
+            Task {
+                await MainActor.run {
+                    cameraError = error as? CameraError ?? .unknownError
+                }
+            }
+        default:
+            break
+        }
+    }
+}
+
+// MARK: - UI Update
+extension CameraViewModel {
+    func hideCameraPreview(_ value: Bool) {
+        withAnimation {
+            hidesCameraPreview = value
+        }
+    }
+
+    @MainActor
+    func updateState(_ cameraMode: CameraMode) {
+        withAnimation {
+            self.pointOfInterest = .zero
+        }
+        self.cameraMode = cameraMode
+        self.isAvailableLivePhoto = camera.isAvailableLivePhoto
+        self.isAvailableFlashLight = camera.isAvailableFlashLight
+        self.focusMode = camera.captureDevice?.focusMode
+        self.exposureMode = camera.captureDevice?.exposureMode
+        self.zoomFactor = camera.captureDevice?.videoZoomFactor ?? .zero
+        self.lastZoomFactor = 1.0
+    }
+}
+
 // MARK: - Scene Phase
 extension CameraViewModel {
+    func onChangeScenePhase(to scenePhase: ScenePhase) {
+        onChangeScenePhaseForCamera(to: scenePhase)
+        onChangeScenePhaseForPhotoLibrary(to: scenePhase)
+        self.scenePhase = scenePhase
+    }
+
     private func onChangeScenePhaseForCamera(to scenePhase: ScenePhase) {
         switch scenePhase {
         case .active:
