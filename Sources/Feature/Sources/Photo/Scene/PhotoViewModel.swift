@@ -16,6 +16,8 @@ class PhotoViewModel: ObservableObject {
     @Published var photo: UIImage?
     @Published var scale: CGFloat = 1.0
     @Published var lastScale: CGFloat = 1.0
+    @Published var offset: CGSize = .zero
+    @Published var lastOffset: CGSize = .zero
     @Published var photoLibraryError: PhotoLibraryError?
 
     var photoLibrary: PhotoLibraryService {
