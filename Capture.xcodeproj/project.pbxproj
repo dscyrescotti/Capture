@@ -11,6 +11,7 @@
 		ECC07BEB299DE1BF0043E5B1 /* CaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */; };
 		ECC07BEF299DE1C10043E5B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */; };
 		ECC07BF2299DE1C10043E5B1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC07BF1299DE1C10043E5B1 /* Preview Assets.xcassets */; };
+		ECFFB2F129A731CB00EB2852 /* CaptureLaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ECFFB2F029A731CB00EB2852 /* CaptureLaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		ECC07BEA299DE1BF0043E5B1 /* CaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureApp.swift; sourceTree = "<group>"; };
 		ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ECC07BF1299DE1C10043E5B1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		ECFFB2F029A731CB00EB2852 /* CaptureLaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = CaptureLaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				ECC07BEE299DE1C10043E5B1 /* Assets.xcassets */,
+				ECFFB2F029A731CB00EB2852 /* CaptureLaunchScreen.storyboard */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -173,6 +176,7 @@
 			files = (
 				ECC07BF2299DE1C10043E5B1 /* Preview Assets.xcassets in Resources */,
 				ECC07BEF299DE1C10043E5B1 /* Assets.xcassets in Resources */,
+				ECFFB2F129A731CB00EB2852 /* CaptureLaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -320,6 +324,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = CaptureLaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -353,6 +358,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = CaptureLaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
