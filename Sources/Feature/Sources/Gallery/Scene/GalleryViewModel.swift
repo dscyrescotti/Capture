@@ -48,7 +48,9 @@ extension GalleryViewModel {
     func loadAllPhotos() async {
         let results = await photoLibrary.fetchAllPhotos()
         await MainActor.run {
-            self.results = results
+            withAnimation {
+                self.results = results
+            }
         }
     }
 }
